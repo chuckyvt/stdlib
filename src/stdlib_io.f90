@@ -88,7 +88,7 @@ module stdlib_io
 
 contains
 
-    subroutine  loadtxt_rsp(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_rsp(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -107,6 +107,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -148,12 +149,20 @@ contains
       end do
 
       do i = 1, max_rows_
-          read(s, "(*"//FMT_REAL_sp(1:len(FMT_REAL_sp)-1)//",1x))") d(i, :)
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
+          read (s,"(*"//FMT_REAL_sp(1:len(FMT_REAL_sp)-1)//",1x))") d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_rsp
-    subroutine  loadtxt_rdp(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_rdp(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -172,6 +181,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -213,12 +223,20 @@ contains
       end do
 
       do i = 1, max_rows_
-          read(s, "(*"//FMT_REAL_dp(1:len(FMT_REAL_dp)-1)//",1x))") d(i, :)
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
+          read (s,"(*"//FMT_REAL_dp(1:len(FMT_REAL_dp)-1)//",1x))") d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_rdp
-    subroutine  loadtxt_iint8(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_iint8(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -237,6 +255,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -278,12 +297,20 @@ contains
       end do
 
       do i = 1, max_rows_
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
           read(s, *) d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_iint8
-    subroutine  loadtxt_iint16(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_iint16(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -302,6 +329,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -343,12 +371,20 @@ contains
       end do
 
       do i = 1, max_rows_
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
           read(s, *) d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_iint16
-    subroutine  loadtxt_iint32(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_iint32(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -367,6 +403,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -408,12 +445,20 @@ contains
       end do
 
       do i = 1, max_rows_
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
           read(s, *) d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_iint32
-    subroutine  loadtxt_iint64(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_iint64(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -432,6 +477,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -473,12 +519,20 @@ contains
       end do
 
       do i = 1, max_rows_
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
           read(s, *) d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_iint64
-    subroutine  loadtxt_csp(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_csp(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -497,6 +551,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -539,12 +594,20 @@ contains
       end do
 
       do i = 1, max_rows_
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
           read(s, "(*"//FMT_COMPLEX_sp(1:len(FMT_COMPLEX_sp)-1)//",1x))") d(i, :)
+        end if
       end do
       close(s)
 
     end subroutine loadtxt_csp
-    subroutine  loadtxt_cdp(filename, d, skiprows, max_rows)
+    subroutine  loadtxt_cdp(filename, d, skiprows, max_rows, fmt)
       !! version: experimental
       !!
       !! Loads a 2D array from a text file.
@@ -563,6 +626,7 @@ contains
       !! A value of zero results in no lines to be read.
       !! The default value is -1.
       integer, intent(in), optional :: max_rows
+      character(len=*), optional :: fmt
       !!
       !! Example
       !! -------
@@ -605,7 +669,15 @@ contains
       end do
 
       do i = 1, max_rows_
+        if ( present( fmt ) ) then
+          if ( fmt == '*' ) then
+            read (s,*) d(i, :)
+          else
+            read (s,fmt) d(i, :)
+          endif
+        else 
           read(s, "(*"//FMT_COMPLEX_dp(1:len(FMT_COMPLEX_dp)-1)//",1x))") d(i, :)
+        end if
       end do
       close(s)
 

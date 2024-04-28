@@ -21,9 +21,7 @@ module test_stdlib_chaining_maps
     integer, parameter        :: test_size = rand_size*4
     integer, parameter        :: test_16 = 2**4
     integer, parameter        :: test_256 = 2**8
-    ! key_type = 2 to support int8 and int32 key types tested.  Can be 
-    ! increased to generate additional unique int8 vectors additional key types.   
-    integer, parameter        :: key_types = 2
+
     public :: collect_stdlib_chaining_maps
 
 contains
@@ -56,9 +54,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( fnv_1_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_16)
@@ -79,9 +78,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( fnv_1_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_256)
@@ -102,9 +102,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( fnv_1a_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_16)
@@ -125,9 +126,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( fnv_1a_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_256)
@@ -148,9 +150,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( seeded_nmhash32_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_16)
@@ -171,9 +174,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( seeded_nmhash32_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_256)
@@ -194,9 +198,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( seeded_nmhash32x_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_16)
@@ -217,9 +222,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( seeded_nmhash32x_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_256)
@@ -240,9 +246,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( seeded_water_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_16)
@@ -263,9 +270,10 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
+
             call map % init( seeded_water_hasher, slots_bits=10 )
 
             call test_input_random_data(error, map, test_8_bits, test_256)
@@ -284,33 +292,29 @@ contains
 
 
     subroutine generate_vector(test_8_bits)
-        integer(int8), intent(out) :: test_8_bits(test_size, key_types)
+        integer(int8), intent(out) :: test_8_bits(test_size)
 
-        integer                   :: index, key_type
+        integer                   :: index
         real(dp)                  :: rand2(2)
         integer(int32)            :: rand_object(rand_size)
 
-        ! Generate a unique int8 vector for each key type tested to avoid
-        ! dupilcate keys and mapping conflicts.   
-        do key_type = 1, key_types        
-            do index=1, rand_size
-                call random_number(rand2)
-                if (rand2(1) < 0.5_dp) then
-                    rand_object(index) = ceiling(-rand2(2)*hugep1, int32) - 1
-                else
-                    rand_object(index) = floor(rand2(2)*hugep1, int32)
-                end if
-            end do
-
-            test_8_bits(:,key_type) = transfer( rand_object, 0_int8, test_size )
+        do index=1, rand_size
+            call random_number(rand2)
+            if (rand2(1) < 0.5_dp) then
+                rand_object(index) = ceiling(-rand2(2)*hugep1, int32) - 1
+            else
+                rand_object(index) = floor(rand2(2)*hugep1, int32)
+            end if
         end do
+
+        test_8_bits(:) = transfer( rand_object, 0_int8, test_size )
 
     end subroutine
 
     subroutine test_input_random_data(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(chaining_hashmap_type), intent(inout) :: map
-        integer(int8), intent(in) :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in) :: test_8_bits(test_size)
         integer(int_index), intent(in) :: test_block
         class(*), allocatable :: dummy
         type(dummy_type) :: dummy_val
@@ -319,24 +323,14 @@ contains
         type(other_type) :: other
         logical :: conflict
 
-        do index2=1, test_size, test_block
-            
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             if (allocated(dummy)) deallocate(dummy)
-            dummy_val % value = test_8_bits( index2:index2+test_block-1, 1 )
+            dummy_val % value = test_8_bits( index2:index2+test_block-1 )
             allocate( dummy, source=dummy_val )
             call set ( other, dummy )
-            
-            ! Test base int8 key interface
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
             call map % map_entry( key, other, conflict )
-            call check(error, .not.conflict, "Unable to map int8 entry because of a key conflict.")
-            
-            ! Test int32 key interface
-            ! Use transfer to create int32 vector from generated int8 vector.  
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % map_entry( key, other, conflict )
-            call check(error, .not.conflict, "Unable to map int32 entry because of a key conflict.")
-
+            call check(error, .not.conflict, "Unable to map entry because of a key conflict.")
             if (allocated(error)) return
         end do
 
@@ -345,21 +339,16 @@ contains
     subroutine test_inquire_data(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(chaining_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in)               :: test_8_bits(test_size)
         integer(int_index), intent(in)          :: test_block
         integer :: index2
         logical :: present
         type(key_type) :: key
 
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             call map % key_test( key, present )
-            call check(error, present, "Int8 KEY not found in map KEY_TEST.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % key_test( key, present )
-            call check(error, present, "Int32 KEY not found in map KEY_TEST.")
-
+            call check(error, present, "KEY not found in map KEY_TEST.")
             if (allocated(error)) return
         end do
 
@@ -368,21 +357,17 @@ contains
     subroutine test_get_data(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(chaining_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in)               :: test_8_bits(test_size)
         integer(int_index), intent(in)          :: test_block
         integer :: index2
         type(key_type) :: key
         type(other_type) :: other
         logical :: exists
 
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             call map % get_other_data( key, other, exists )
-            call check(error, exists, "Unable to get data because int8 key not found in map.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % get_other_data( key, other, exists )
-            call check(error, exists, "Unable to get data because int32 key not found in map.")
+            call check(error, exists, "Unable to get data because key not found in map.")
         end do
 
     end subroutine
@@ -390,20 +375,16 @@ contains
     subroutine test_removal(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(chaining_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in)               :: test_8_bits(test_size)
         integer(int_index), intent(in)          :: test_block
         type(key_type) :: key
         integer(int_index) :: index2
         logical :: existed
 
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             call map % remove(key, existed)
-            call check(error, existed,  "Int8 Key not found in entry removal.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % remove(key, existed)
-            call check(error, existed,  "Int32 Key not found in entry removal.")
+            call check(error, existed,  "Key not found in entry removal.")
         end do
 
     end subroutine
@@ -483,9 +464,6 @@ module test_stdlib_open_maps
     integer, parameter        :: test_size = rand_size*4
     integer, parameter        :: test_16 = 2**4
     integer, parameter        :: test_256 = 2**8
-    ! key_type = 2 to support int8 and int32 key types tested.  Can be 
-    ! increased to generate additional unique int8 vectors additional key types.  
-    integer, parameter        :: key_types = 2
 
     public :: collect_stdlib_open_maps
 
@@ -518,7 +496,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -542,7 +520,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -566,7 +544,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -590,7 +568,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -614,7 +592,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -638,7 +616,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -662,7 +640,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -686,7 +664,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -710,7 +688,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -734,7 +712,7 @@ contains
             type(error_type), allocatable, intent(out) :: error
 
             type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
+            integer(int8)             :: test_8_bits(test_size)
 
             call generate_vector(test_8_bits)
 
@@ -756,33 +734,29 @@ contains
 
 
     subroutine generate_vector(test_8_bits)
-        integer(int8), intent(out) :: test_8_bits(test_size, key_types)
+        integer(int8), intent(out) :: test_8_bits(test_size)
 
-        integer                   :: index, key_type
+        integer                   :: index
         real(dp)                  :: rand2(2)
         integer(int32)            :: rand_object(rand_size)
-        
-        ! Generate a unique int8 vector for each key type tested to avoid
-        ! dupilcate keys and mapping conflicts. 
-        do key_type = 1, key_types
-            do index=1, rand_size
-                call random_number(rand2)
-                if (rand2(1) < 0.5_dp) then
-                    rand_object(index) = ceiling(-rand2(2)*hugep1, int32) - 1
-                else
-                    rand_object(index) = floor(rand2(2)*hugep1, int32)
-                end if
-            end do
 
-            test_8_bits(:,key_type) = transfer( rand_object, 0_int8, test_size )
-        enddo
+        do index=1, rand_size
+            call random_number(rand2)
+            if (rand2(1) < 0.5_dp) then
+                rand_object(index) = ceiling(-rand2(2)*hugep1, int32) - 1
+            else
+                rand_object(index) = floor(rand2(2)*hugep1, int32)
+            end if
+        end do
+
+        test_8_bits(:) = transfer( rand_object, 0_int8, test_size )
 
     end subroutine
 
     subroutine test_input_random_data(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(open_hashmap_type), intent(inout) :: map
-        integer(int8), intent(in) :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in) :: test_8_bits(test_size)
         integer(int_index), intent(in) :: test_block
         class(*), allocatable :: dummy
         type(dummy_type) :: dummy_val
@@ -791,24 +765,14 @@ contains
         type(other_type) :: other
         logical :: conflict
 
-        do index2=1, test_size, test_block
-
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             if (allocated(dummy)) deallocate(dummy)
-            dummy_val % value = test_8_bits( index2:index2+test_block-1, 1 )
+            dummy_val % value = test_8_bits( index2:index2+test_block-1 )
             allocate( dummy, source=dummy_val )
             call set ( other, dummy )
-            
-            ! Test base int8 key interface
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
             call map % map_entry( key, other, conflict )
-            call check(error, .not.conflict, "Unable to map int8 entry because of a key conflict.")
-            
-            ! Test int32 key interface
-            ! Use transfer to create int32 vector from generated int8 vector.
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % map_entry( key, other, conflict )
-            call check(error, .not.conflict, "Unable to map int32 entry because of a key conflict.")
-
+            call check(error, .not.conflict, "Unable to map entry because of a key conflict.")
             if (allocated(error)) return
         end do
 
@@ -817,23 +781,17 @@ contains
     subroutine test_inquire_data(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(open_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in)               :: test_8_bits(test_size)
         integer(int_index), intent(in)          :: test_block
         integer :: index2
         logical :: present
         type(key_type) :: key
 
-        do index2=1, test_size, test_block
-
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             call map % key_test( key, present )
-            call check(error, present, "Int8 KEY not found in map KEY_TEST.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % key_test( key, present )
-            call check(error, present, "Int32 KEY not found in map KEY_TEST.")
-
-            if (allocated(error)) return            
+            call check(error, present, "KEY not found in map KEY_TEST.")
+            if (allocated(error)) return
         end do
 
     end subroutine
@@ -841,21 +799,17 @@ contains
     subroutine test_get_data(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(open_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in)               :: test_8_bits(test_size)
         integer(int_index), intent(in)          :: test_block
         integer :: index2
         type(key_type) :: key
         type(other_type) :: other
         logical :: exists
 
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             call map % get_other_data( key, other, exists )
-            call check(error, exists, "Unable to get data because int8 key not found in map.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % get_other_data( key, other, exists )
-            call check(error, exists, "Unable to get data because int32 key not found in map.")
+            call check(error, exists, "Unable to get data because key not found in map.")
         end do
 
     end subroutine
@@ -863,20 +817,16 @@ contains
     subroutine test_removal(error, map, test_8_bits, test_block)
         type(error_type), allocatable, intent(out) :: error
         type(open_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
+        integer(int8), intent(in)               :: test_8_bits(test_size)
         integer(int_index), intent(in)          :: test_block
         type(key_type) :: key
         integer(int_index) :: index2
         logical :: existed
 
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
+        do index2=1, size(test_8_bits), test_block
+            call set( key, test_8_bits( index2:index2+test_block-1 ) )
             call map % remove(key, existed)
-            call check(error, existed,  "Int8 Key not found in entry removal.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % remove(key, existed)
-            call check(error, existed,  "Int32 Key not found in entry removal.")
+            call check(error, existed,  "Key not found in entry removal.")
         end do
 
     end subroutine
