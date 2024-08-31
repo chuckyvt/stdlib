@@ -9,10 +9,19 @@ module stdlib_linalg
   implicit none
   private
 
+  public :: chol
+  public :: cholesky
   public :: det
   public :: operator(.det.)
   public :: diag
+  public :: eig
+  public :: eigh
+  public :: eigvals
+  public :: eigvalsh
   public :: eye
+  public :: inv
+  public :: invert
+  public :: operator(.inv.)
   public :: lstsq
   public :: lstsq_space
   public :: solve
@@ -35,6 +44,180 @@ module stdlib_linalg
   ! Export linalg error handling
   public :: linalg_state_type, linalg_error_handling
 
+  interface chol
+    !! version: experimental 
+    !!
+    !! Computes the Cholesky factorization \( A = L \cdot L^T \), or \( A = U^T \cdot U \). 
+    !! ([Specification](../page/specs/stdlib_linalg.html#chol-compute-the-cholesky-factorization-of-a-rank-2-square-array-matrix))
+    !! 
+    !!### Summary 
+    !! Pure function interface for computing the Cholesky triangular factors. 
+    !!
+    !!### Description
+    !! 
+    !! This interface provides methods for computing the lower- or upper- triangular matrix from the 
+    !! Cholesky factorization of a `real` symmetric or `complex` Hermitian matrix.
+    !! Supported data types include `real` and `complex`.    
+    !! 
+    !!@note The solution is based on LAPACK's `*POTRF` methods.
+    !!     
+     pure module function stdlib_linalg_s_cholesky_fun(a,lower,other_zeroed) result(c)
+         !> Input matrix a[m,n]
+         real(sp), intent(in) :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> Output matrix with Cholesky factors c[n,n]
+         real(sp) :: c(size(a,1),size(a,2))                  
+     end function stdlib_linalg_s_cholesky_fun
+     pure module function stdlib_linalg_d_cholesky_fun(a,lower,other_zeroed) result(c)
+         !> Input matrix a[m,n]
+         real(dp), intent(in) :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> Output matrix with Cholesky factors c[n,n]
+         real(dp) :: c(size(a,1),size(a,2))                  
+     end function stdlib_linalg_d_cholesky_fun
+     pure module function stdlib_linalg_c_cholesky_fun(a,lower,other_zeroed) result(c)
+         !> Input matrix a[m,n]
+         complex(sp), intent(in) :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> Output matrix with Cholesky factors c[n,n]
+         complex(sp) :: c(size(a,1),size(a,2))                  
+     end function stdlib_linalg_c_cholesky_fun
+     pure module function stdlib_linalg_z_cholesky_fun(a,lower,other_zeroed) result(c)
+         !> Input matrix a[m,n]
+         complex(dp), intent(in) :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> Output matrix with Cholesky factors c[n,n]
+         complex(dp) :: c(size(a,1),size(a,2))                  
+     end function stdlib_linalg_z_cholesky_fun
+  end interface chol  
+
+  interface cholesky
+    !! version: experimental 
+    !!
+    !! Computes the Cholesky factorization \( A = L \cdot L^T \), or \( A = U^T \cdot U \). 
+    !! ([Specification](../page/specs/stdlib_linalg.html#cholesky-compute-the-cholesky-factorization-of-a-rank-2-square-array-matrix))
+    !! 
+    !!### Summary 
+    !! Pure subroutine interface for computing the Cholesky triangular factors. 
+    !!
+    !!### Description
+    !! 
+    !! This interface provides methods for computing the lower- or upper- triangular matrix from the 
+    !! Cholesky factorization of a `real` symmetric or `complex` Hermitian matrix.
+    !! Supported data types include `real` and `complex`.    
+    !! The factorization is computed in-place if only one matrix argument is present; or returned into 
+    !! a second matrix argument, if present. The `lower` `logical` flag allows to select between upper or 
+    !! lower factorization; the `other_zeroed` optional `logical` flag allows to choose whether the unused
+    !! part of the triangular matrix should be filled with zeroes.
+    !! 
+    !!@note The solution is based on LAPACK's `*POTRF` methods.
+    !!         
+     pure module subroutine stdlib_linalg_s_cholesky_inplace(a,lower,other_zeroed,err) 
+         !> Input matrix a[m,n]
+         real(sp), intent(inout), target :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+     end subroutine stdlib_linalg_s_cholesky_inplace
+     
+     pure module subroutine stdlib_linalg_s_cholesky(a,c,lower,other_zeroed,err) 
+         !> Input matrix a[n,n]
+         real(sp), intent(in) :: a(:,:)
+         !> Output matrix with Cholesky factors c[n,n]
+         real(sp), intent(out) :: c(:,:)         
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err     
+     end subroutine stdlib_linalg_s_cholesky
+     pure module subroutine stdlib_linalg_d_cholesky_inplace(a,lower,other_zeroed,err) 
+         !> Input matrix a[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+     end subroutine stdlib_linalg_d_cholesky_inplace
+     
+     pure module subroutine stdlib_linalg_d_cholesky(a,c,lower,other_zeroed,err) 
+         !> Input matrix a[n,n]
+         real(dp), intent(in) :: a(:,:)
+         !> Output matrix with Cholesky factors c[n,n]
+         real(dp), intent(out) :: c(:,:)         
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err     
+     end subroutine stdlib_linalg_d_cholesky
+     pure module subroutine stdlib_linalg_c_cholesky_inplace(a,lower,other_zeroed,err) 
+         !> Input matrix a[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+     end subroutine stdlib_linalg_c_cholesky_inplace
+     
+     pure module subroutine stdlib_linalg_c_cholesky(a,c,lower,other_zeroed,err) 
+         !> Input matrix a[n,n]
+         complex(sp), intent(in) :: a(:,:)
+         !> Output matrix with Cholesky factors c[n,n]
+         complex(sp), intent(out) :: c(:,:)         
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err     
+     end subroutine stdlib_linalg_c_cholesky
+     pure module subroutine stdlib_linalg_z_cholesky_inplace(a,lower,other_zeroed,err) 
+         !> Input matrix a[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+     end subroutine stdlib_linalg_z_cholesky_inplace
+     
+     pure module subroutine stdlib_linalg_z_cholesky(a,c,lower,other_zeroed,err) 
+         !> Input matrix a[n,n]
+         complex(dp), intent(in) :: a(:,:)
+         !> Output matrix with Cholesky factors c[n,n]
+         complex(dp), intent(out) :: c(:,:)         
+         !> [optional] is the lower or upper triangular factor required? Default = lower
+         logical(lk), optional, intent(in) :: lower
+         !> [optional] should the unused half of the return matrix be zeroed out? Default: yes
+         logical(lk), optional, intent(in) :: other_zeroed
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err     
+     end subroutine stdlib_linalg_z_cholesky
+  end interface cholesky
+     
   interface diag
     !! version: experimental
     !!
@@ -480,7 +663,6 @@ module stdlib_linalg
      !! or several (from a 2-d right-hand-side vector `b(:,:)`) systems.
      !! 
      !!@note The solution is based on LAPACK's generic LU decomposition based solvers `*GESV`.
-     !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
      !!    
      module function stdlib_linalg_s_solve_one(a,b,overwrite_a,err) result(x)
          !> Input matrix a[n,n]
@@ -665,7 +847,6 @@ module stdlib_linalg
      !! or several (from a 2-d right-hand-side vector `b(:,:)`) systems.
      !! 
      !!@note The solution is based on LAPACK's generic LU decomposition based solvers `*GESV`.
-     !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
      !!        
      pure module subroutine stdlib_linalg_s_solve_lu_one(a,b,x,pivot,overwrite_a,err)     
          !> Input matrix a[n,n]
@@ -797,7 +978,6 @@ module stdlib_linalg
     !! Supported data types include `real` and `complex`.
     !! 
     !!@note The solution is based on LAPACK's singular value decomposition `*GELSD` methods.
-    !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
     !! 
       module function stdlib_linalg_s_lstsq_one(a,b,cond,overwrite_a,rank,err) result(x)
          !> Input matrix a[n,n]
@@ -946,7 +1126,6 @@ module stdlib_linalg
     !! are provided, no internal memory allocations take place when using this interface.
     !! 
     !!@note The solution is based on LAPACK's singular value decomposition `*GELSD` methods.
-    !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
     !! 
       module subroutine stdlib_linalg_s_solve_lstsq_one(a,b,x,real_storage,int_storage,&
                         cond,singvals,overwrite_a,rank,err) 
@@ -1369,6 +1548,617 @@ module stdlib_linalg
     end function stdlib_linalg_pure_cdpdeterminant
   end interface  
 
+  ! Matrix Inverse: Function interface
+  interface inv
+    !! version: experimental 
+    !!
+    !! Inverse of a square matrix
+    !! ([Specification](../page/specs/stdlib_linalg.html#inv-inverse-of-a-square-matrix))
+    !!
+    !!### Summary
+    !! This interface provides methods for computing the inverse of a square `real` or `complex` matrix.
+    !! The inverse \( A^{-1} \) is defined such that \( A \cdot A^{-1} = A^{-1} \cdot A = I_n \).
+    !!
+    !!### Description
+    !!     
+    !! This function interface provides methods that return the inverse of a square matrix.    
+    !! Supported data types include `real` and `complex`. 
+    !! The inverse matrix \( A^{-1} \) is returned as a function result. 
+    !! Exceptions are raised in case of singular matrix or invalid size, and trigger an `error stop` if 
+    !! the state flag `err` is not provided. 
+    !!
+    !!@note The provided functions are intended for square matrices.
+    !!       
+    module function stdlib_linalg_inverse_s(a,err) result(inva)
+         !> Input matrix a[n,n]
+         real(sp), intent(in) :: a(:,:)
+         !> Output matrix inverse
+         real(sp), allocatable :: inva(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end function stdlib_linalg_inverse_s
+    module function stdlib_linalg_inverse_d(a,err) result(inva)
+         !> Input matrix a[n,n]
+         real(dp), intent(in) :: a(:,:)
+         !> Output matrix inverse
+         real(dp), allocatable :: inva(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end function stdlib_linalg_inverse_d
+    module function stdlib_linalg_inverse_c(a,err) result(inva)
+         !> Input matrix a[n,n]
+         complex(sp), intent(in) :: a(:,:)
+         !> Output matrix inverse
+         complex(sp), allocatable :: inva(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end function stdlib_linalg_inverse_c
+    module function stdlib_linalg_inverse_z(a,err) result(inva)
+         !> Input matrix a[n,n]
+         complex(dp), intent(in) :: a(:,:)
+         !> Output matrix inverse
+         complex(dp), allocatable :: inva(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end function stdlib_linalg_inverse_z
+  end interface inv
+
+  ! Matrix Inverse: Subroutine interface - in-place inversion
+  interface invert
+    !! version: experimental 
+    !!
+    !! Inversion of a square matrix
+    !! ([Specification](../page/specs/stdlib_linalg.html#invert-inversion-of-a-square-matrix))
+    !!
+    !!### Summary
+    !! This interface provides methods for inverting a square `real` or `complex` matrix in-place.
+    !! The inverse \( A^{-1} \) is defined such that \( A \cdot A^{-1} = A^{-1} \cdot A = I_n \).
+    !!
+    !!### Description
+    !!     
+    !! This subroutine interface provides a way to compute the inverse of a matrix.    
+    !! Supported data types include `real` and `complex`. 
+    !! The user may provide a unique matrix argument `a`. In this case, `a` is replaced by the inverse matrix.
+    !! on output. Otherwise, one may provide two separate arguments: an input matrix `a` and an output matrix 
+    !! `inva`. In this case, `a` will not be modified, and the inverse is returned in `inva`.
+    !! Pre-allocated storage may be provided for the array of pivot indices, `pivot`. If all pre-allocated 
+    !! work spaces are provided, no internal memory allocations take place when using this interface.             
+    !!
+    !!@note The provided subroutines are intended for square matrices.
+    !!      
+    module subroutine stdlib_linalg_invert_inplace_s(a,pivot,err)
+         !> Input matrix a[n,n]
+         real(sp), intent(inout) :: a(:,:)
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_invert_inplace_s
+    ! Compute the square matrix inverse of a
+    module subroutine stdlib_linalg_invert_split_s(a,inva,pivot,err)
+         !> Input matrix a[n,n].
+         real(sp), intent(in) :: a(:,:)
+         !> Inverse matrix a[n,n]. 
+         real(sp), intent(out) :: inva(:,:)         
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err    
+    end subroutine stdlib_linalg_invert_split_s
+    module subroutine stdlib_linalg_invert_inplace_d(a,pivot,err)
+         !> Input matrix a[n,n]
+         real(dp), intent(inout) :: a(:,:)
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_invert_inplace_d
+    ! Compute the square matrix inverse of a
+    module subroutine stdlib_linalg_invert_split_d(a,inva,pivot,err)
+         !> Input matrix a[n,n].
+         real(dp), intent(in) :: a(:,:)
+         !> Inverse matrix a[n,n]. 
+         real(dp), intent(out) :: inva(:,:)         
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err    
+    end subroutine stdlib_linalg_invert_split_d
+    module subroutine stdlib_linalg_invert_inplace_c(a,pivot,err)
+         !> Input matrix a[n,n]
+         complex(sp), intent(inout) :: a(:,:)
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_invert_inplace_c
+    ! Compute the square matrix inverse of a
+    module subroutine stdlib_linalg_invert_split_c(a,inva,pivot,err)
+         !> Input matrix a[n,n].
+         complex(sp), intent(in) :: a(:,:)
+         !> Inverse matrix a[n,n]. 
+         complex(sp), intent(out) :: inva(:,:)         
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err    
+    end subroutine stdlib_linalg_invert_split_c
+    module subroutine stdlib_linalg_invert_inplace_z(a,pivot,err)
+         !> Input matrix a[n,n]
+         complex(dp), intent(inout) :: a(:,:)
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_invert_inplace_z
+    ! Compute the square matrix inverse of a
+    module subroutine stdlib_linalg_invert_split_z(a,inva,pivot,err)
+         !> Input matrix a[n,n].
+         complex(dp), intent(in) :: a(:,:)
+         !> Inverse matrix a[n,n]. 
+         complex(dp), intent(out) :: inva(:,:)         
+         !> [optional] Storage array for the diagonal pivot indices
+         integer(ilp), optional, intent(inout), target :: pivot(:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err    
+    end subroutine stdlib_linalg_invert_split_z
+  end interface invert
+
+  ! Matrix Inverse: Operator interface
+  interface operator(.inv.)
+    !! version: experimental 
+    !!
+    !! Inverse operator of a square matrix
+    !! ([Specification](../page/specs/stdlib_linalg.html#inv-inverse-operator-of-a-square-matrix))
+    !!
+    !!### Summary
+    !! Operator interface for computing the inverse of a square `real` or `complex` matrix.
+    !!
+    !!### Description
+    !! 
+    !! This operator interface provides a convenient way to compute the inverse of a matrix.
+    !! Supported data types include `real` and `complex`. On input errors or singular matrix, 
+    !! NaNs will be returned.
+    !!
+    !!@note The provided functions are intended for square matrices.
+    !!
+    module function stdlib_linalg_inverse_s_operator(a) result(inva)
+         !> Input matrix a[n,n]
+         real(sp), intent(in) :: a(:,:)
+         !> Result matrix
+         real(sp), allocatable :: inva(:,:)        
+    end function stdlib_linalg_inverse_s_operator
+    module function stdlib_linalg_inverse_d_operator(a) result(inva)
+         !> Input matrix a[n,n]
+         real(dp), intent(in) :: a(:,:)
+         !> Result matrix
+         real(dp), allocatable :: inva(:,:)        
+    end function stdlib_linalg_inverse_d_operator
+    module function stdlib_linalg_inverse_c_operator(a) result(inva)
+         !> Input matrix a[n,n]
+         complex(sp), intent(in) :: a(:,:)
+         !> Result matrix
+         complex(sp), allocatable :: inva(:,:)        
+    end function stdlib_linalg_inverse_c_operator
+    module function stdlib_linalg_inverse_z_operator(a) result(inva)
+         !> Input matrix a[n,n]
+         complex(dp), intent(in) :: a(:,:)
+         !> Result matrix
+         complex(dp), allocatable :: inva(:,:)        
+    end function stdlib_linalg_inverse_z_operator
+  end interface operator(.inv.)
+
+
+  ! Eigendecomposition of a square matrix: eigenvalues, and optionally eigenvectors
+  interface eig    
+     !! version: experimental 
+     !!
+     !! Solves the eigendecomposition \( A \cdot \bar{v} - \lambda \cdot \bar{v} \) for square matrix \( A \). 
+     !! ([Specification](../page/specs/stdlib_linalg.html#eig-eigenvalues-and-eigenvectors-of-a-square-matrix))
+     !!
+     !!### Summary 
+     !! Subroutine interface for computing eigenvalues and eigenvectors of a square matrix.
+     !!
+     !!### Description
+     !! 
+     !! This interface provides methods for computing the eigenvalues, and optionally eigenvectors, 
+     !! of a general square matrix. Supported data types include `real` and `complex`, and no assumption is 
+     !! made on the matrix structure. The user may request either left, right, or both 
+     !! eigenvectors to be returned. They are returned as columns of a square matrix with the same size as `A`. 
+     !! Preallocated space for both eigenvalues `lambda` and the eigenvector matrices must be user-provided.      
+     !! 
+     !!@note The solution is based on LAPACK's general eigenproblem solvers `*GEEV`.
+     !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
+     !!       
+    module subroutine stdlib_linalg_eig_s(a,lambda,right,left,overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_s
+    module subroutine stdlib_linalg_eig_d(a,lambda,right,left,overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_d
+    module subroutine stdlib_linalg_eig_c(a,lambda,right,left,overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_c
+    module subroutine stdlib_linalg_eig_z(a,lambda,right,left,overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_z
+    module subroutine stdlib_linalg_real_eig_s(a,lambda,right,left,overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Array of real eigenvalues
+         real(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_s
+    module subroutine stdlib_linalg_real_eig_d(a,lambda,right,left,overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Array of real eigenvalues
+         real(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_d
+  end interface eig
+
+  ! Eigenvalues of a square matrix
+  interface eigvals
+     !! version: experimental 
+     !!
+     !! Returns the eigenvalues \( lambda \), \( A \cdot \bar{v} - \lambda \cdot \bar{v} \), for square matrix \( A \). 
+     !! ([Specification](../page/specs/stdlib_linalg.html#eigvals-eigenvalues-of-a-square-matrix))
+     !!
+     !!### Summary 
+     !! Function interface for computing the eigenvalues of a square matrix.
+     !!
+     !!### Description
+     !! 
+     !! This interface provides functions for returning the eigenvalues of a general square matrix. 
+     !! Supported data types include `real` and `complex`, and no assumption is made on the matrix structure. 
+     !! An `error stop` is thrown in case of failure; otherwise, error information can be returned 
+     !! as an optional `type(linalg_state_type)` output flag. 
+     !! 
+     !!@note The solution is based on LAPACK's general eigenproblem solvers `*GEEV`.
+     !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
+     !!       
+    module function stdlib_linalg_eigvals_s(a,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         real(sp), intent(in), target :: a(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_s
+    
+    module function stdlib_linalg_eigvals_noerr_s(a) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         real(sp), intent(in), target :: a(:,:)
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_s
+    module function stdlib_linalg_eigvals_d(a,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         real(dp), intent(in), target :: a(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_d
+    
+    module function stdlib_linalg_eigvals_noerr_d(a) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         real(dp), intent(in), target :: a(:,:)
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_d
+    module function stdlib_linalg_eigvals_c(a,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), target :: a(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_c
+    
+    module function stdlib_linalg_eigvals_noerr_c(a) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), target :: a(:,:)
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_c
+    module function stdlib_linalg_eigvals_z(a,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), target :: a(:,:)
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_z
+    
+    module function stdlib_linalg_eigvals_noerr_z(a) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), target :: a(:,:)
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_z
+  end interface eigvals
+     
+  ! Eigendecomposition of a real symmetric or complex hermitian matrix
+  interface eigh
+     !! version: experimental 
+     !!
+     !! Solves the eigendecomposition \( A \cdot \bar{v} - \lambda \cdot \bar{v} \) for a real symmetric 
+     !! \( A = A^T \) or complex Hermitian \( A = A^H \) square matrix. 
+     !! ([Specification](../page/specs/stdlib_linalg.html#eigh-eigenvalues-and-eigenvectors-of-a-real-symmetric-or-complex-hermitian-square-matrix))
+     !!
+     !!### Summary 
+     !! Subroutine interface for computing eigenvalues and eigenvectors of a real symmetric or complex Hermitian square matrix.
+     !!
+     !!### Description
+     !! 
+     !! This interface provides methods for computing the eigenvalues, and optionally eigenvectors, 
+     !! of a real symmetric or complex Hermitian square matrix. Supported data types include `real` and `complex`. 
+     !! The matrix must be symmetric (if `real`) or Hermitian (if `complex`). Only the lower or upper 
+     !! half of the matrix is accessed, and the user can select which using the optional `upper_a` 
+     !! flag (default: use lower half). The vectors are orthogonal, and may be returned as columns of an optional 
+     !! matrix `vectors` with the same kind and size as `A`. 
+     !! Preallocated space for both eigenvalues `lambda` and the eigenvector matrix must be user-provided.      
+     !! 
+     !!@note The solution is based on LAPACK's eigenproblem solvers `*SYEV`/`*HEEV`.
+     !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
+     !!      
+    module subroutine stdlib_linalg_eigh_s(a,lambda,vectors,upper_a,overwrite_a,err)
+     !! Eigendecomposition of a real symmetric or complex Hermitian matrix A returning an array `lambda` 
+     !! of eigenvalues, and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         real(sp), intent(out) :: lambda(:)
+         !> The columns of vectors contain the orthonormal eigenvectors of A
+         real(sp), optional, intent(out), target :: vectors(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eigh_s
+    module subroutine stdlib_linalg_eigh_d(a,lambda,vectors,upper_a,overwrite_a,err)
+     !! Eigendecomposition of a real symmetric or complex Hermitian matrix A returning an array `lambda` 
+     !! of eigenvalues, and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         real(dp), intent(out) :: lambda(:)
+         !> The columns of vectors contain the orthonormal eigenvectors of A
+         real(dp), optional, intent(out), target :: vectors(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eigh_d
+    module subroutine stdlib_linalg_eigh_c(a,lambda,vectors,upper_a,overwrite_a,err)
+     !! Eigendecomposition of a real symmetric or complex Hermitian matrix A returning an array `lambda` 
+     !! of eigenvalues, and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         real(sp), intent(out) :: lambda(:)
+         !> The columns of vectors contain the orthonormal eigenvectors of A
+         complex(sp), optional, intent(out), target :: vectors(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eigh_c
+    module subroutine stdlib_linalg_eigh_z(a,lambda,vectors,upper_a,overwrite_a,err)
+     !! Eigendecomposition of a real symmetric or complex Hermitian matrix A returning an array `lambda` 
+     !! of eigenvalues, and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         real(dp), intent(out) :: lambda(:)
+         !> The columns of vectors contain the orthonormal eigenvectors of A
+         complex(dp), optional, intent(out), target :: vectors(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eigh_z
+  end interface eigh
+     
+  ! Eigenvalues of a real symmetric or complex hermitian matrix
+  interface eigvalsh
+     !! version: experimental 
+     !!
+     !! Returns the eigenvalues \( lambda \), \( A \cdot \bar{v} - \lambda \cdot \bar{v} \), for a real
+     !! symmetric \( A = A^T \) or complex Hermitian \( A = A^H \) square matrix. 
+     !! ([Specification](../page/specs/stdlib_linalg.html#eigvalsh-eigenvalues-of-a-real-symmetric-or-complex-hermitian-square-matrix))
+     !!
+     !!### Summary 
+     !! Function interface for computing the eigenvalues of a real symmetric or complex hermitian square matrix.
+     !!
+     !!### Description
+     !! 
+     !! This interface provides functions for returning the eigenvalues of a real symmetric or complex Hermitian
+     !! square matrix. Supported data types include `real` and `complex`. The matrix must be symmetric 
+     !! (if `real`) or Hermitian (if `complex`). Only the lower or upper half of the matrix is accessed, 
+     !! and the user can select which using the optional `upper_a` flag (default: use lower half). 
+     !! An `error stop` is thrown in case of failure; otherwise, error information can be returned 
+     !! as an optional `type(linalg_state_type)` output flag. 
+     !! 
+     !!@note The solution is based on LAPACK's eigenproblem solvers `*SYEV`/`*HEEV`.
+     !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
+     !!         
+    module function stdlib_linalg_eigvalsh_s(a,upper_a,err) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A
+         !> Input matrix A[m,n]
+         real(sp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         real(sp), allocatable :: lambda(:)    
+    end function stdlib_linalg_eigvalsh_s
+    
+    module function stdlib_linalg_eigvalsh_noerr_s(a,upper_a) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A        
+         !> Input matrix A[m,n]
+         real(sp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> Array of singular values
+         real(sp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvalsh_noerr_s
+    module function stdlib_linalg_eigvalsh_d(a,upper_a,err) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A
+         !> Input matrix A[m,n]
+         real(dp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         real(dp), allocatable :: lambda(:)    
+    end function stdlib_linalg_eigvalsh_d
+    
+    module function stdlib_linalg_eigvalsh_noerr_d(a,upper_a) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A        
+         !> Input matrix A[m,n]
+         real(dp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> Array of singular values
+         real(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvalsh_noerr_d
+    module function stdlib_linalg_eigvalsh_c(a,upper_a,err) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         real(sp), allocatable :: lambda(:)    
+    end function stdlib_linalg_eigvalsh_c
+    
+    module function stdlib_linalg_eigvalsh_noerr_c(a,upper_a) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A        
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> Array of singular values
+         real(sp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvalsh_noerr_c
+    module function stdlib_linalg_eigvalsh_z(a,upper_a,err) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         real(dp), allocatable :: lambda(:)    
+    end function stdlib_linalg_eigvalsh_z
+    
+    module function stdlib_linalg_eigvalsh_noerr_z(a,upper_a) result(lambda)
+     !! Return an array of eigenvalues of real symmetric / complex hermitian A        
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), target :: a(:,:)
+         !> [optional] Should the upper/lower half of A be used? Default: lower
+         logical(lk), optional, intent(in) :: upper_a         
+         !> Array of singular values
+         real(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvalsh_noerr_z
+  end interface eigvalsh
+
   ! Singular value decomposition  
   interface svd 
     !! version: experimental 
@@ -1388,7 +2178,6 @@ module stdlib_linalg
     !! It is possible to use partial storage [m,k] and [k,n], `k=min(m,n)`, choosing `full_matrices=.false.`.
     !! 
     !!@note The solution is based on LAPACK's singular value decomposition `*GESDD` methods.
-    !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).    
     !! 
     !!### Example
     !!
@@ -1561,7 +2350,6 @@ module stdlib_linalg
     !! singular values, with size [min(m,n)]. 
     !! 
     !!@note The solution is based on LAPACK's singular value decomposition `*GESDD` methods.
-    !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).    
     !! 
     !!### Example
     !!
