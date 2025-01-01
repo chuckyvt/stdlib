@@ -297,7 +297,7 @@ contains
 !
         class(open_hashmap_type), intent(inout) :: map
         type(key_type), intent(in)              :: key
-        class(*), allocatable, intent(out)      :: other
+        type(other_type), intent(out)           :: other
         logical, intent(out), optional          :: exists
 
         integer(int_index) :: inmap
@@ -315,7 +315,7 @@ contains
             end if
         else if ( associated( map % inverse(inmap) % target ) ) then
             if ( present(exists) ) exists = .true.
-            other = map % inverse(inmap) % target % other
+            call copy_other( map % inverse(inmap) % target % other, other )
         else
             if ( present(exists) ) then
                 exists = .false.
@@ -525,7 +525,7 @@ contains
 !
         class(open_hashmap_type), intent(inout) :: map
         type(key_type), intent(in)              :: key
-        class(*), intent(in), optional          :: other
+        type(other_type), intent(in), optional  :: other
         logical, intent(out), optional          :: conflict
 
         type(open_map_entry_type), pointer :: new_ent
@@ -553,7 +553,8 @@ contains
                 call allocate_open_map_entry(map, new_ent)
                 new_ent % hash_val = hash_val
                 call copy_key( key, new_ent % key )
-                if ( present( other ) ) new_ent % other = other
+                if ( present( other ) ) &
+                    call copy_other( other, new_ent % other )
                 inmap = new_ent % inmap
                 map % inverse( inmap ) % target => new_ent
                 map % slots( test_slot ) = inmap
@@ -821,7 +822,7 @@ contains
 !
         class(open_hashmap_type), intent(inout) :: map
         type(key_type), intent(in)              :: key
-        class(*), intent(in)                    :: other
+        type(other_type), intent(in)            :: other
         logical, intent(out),optional           :: exists
 
         integer(int_index) :: inmap
@@ -839,9 +840,11 @@ contains
                     invalid_inmap
             end if
         else if ( associated( map % inverse(inmap) % target ) ) then
-            map % inverse(inmap) % target % other = other
-            if ( present(exists) ) exists = .true.
-            return
+            associate( target => map % inverse(inmap) % target )
+              call copy_other( other, target % other )
+              if ( present(exists) ) exists = .true.
+              return
+            end associate
         else
             error stop submodule_name // ' % ' // procedure // ': ' // &
                 invalid_inmap

@@ -8,7 +8,7 @@ module stdlib_linalg_blas_z
      private
 
 
-     public :: sp,dp,qp,lk,ilp
+     public :: sp,dp,qp,lk,ilp,ilp64
      public :: stdlib_zaxpy
      public :: stdlib_zcopy
      public :: stdlib_zdotc
@@ -84,7 +84,6 @@ module stdlib_linalg_blas_z
 
 
      contains
-
 
      pure subroutine stdlib_zaxpy(n,za,zx,incx,zy,incy)
      !! ZAXPY constant times a vector plus a vector.
@@ -2626,8 +2625,6 @@ module stdlib_linalg_blas_z
         ! -- reference blas level1 routine --
         ! -- reference blas is a software package provided by univ. of tennessee,    --
         ! -- univ. of california berkeley, univ. of colorado denver and nag ltd..--
-        ! Constants 
-        integer, parameter :: wp = kind(1._dp)
         ! Scaling Constants 
         ! Scalar Arguments 
         real(dp), intent(out) :: c
@@ -5054,7 +5051,6 @@ module stdlib_linalg_blas_z
            end if
            return
      end subroutine stdlib_ztrsv
-
 
 
 end module stdlib_linalg_blas_z

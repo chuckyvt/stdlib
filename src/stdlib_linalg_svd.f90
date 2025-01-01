@@ -144,7 +144,6 @@ submodule(stdlib_linalg) stdlib_linalg_svd
          character :: task
          real(sp), target :: work_dummy(1),u_dummy(1,1),vt_dummy(1,1)
          real(sp), allocatable :: work(:)
-         real(sp), allocatable :: rwork(:)
          real(sp), pointer :: amat(:,:),umat(:,:),vtmat(:,:)
 
          !> Matrix determinant size
@@ -257,7 +256,11 @@ submodule(stdlib_linalg) stdlib_linalg_svd
          if (info==0) then
 
             !> Prepare working storage
-            lwork = nint(real(work_dummy(1),kind=sp), kind=ilp)
+            ! Check if the returned working storage space is smaller than the largest value
+            ! allowed by lwork
+            lwork = merge(nint(real(work_dummy(1),kind=sp), kind=ilp) &
+                          , huge(lwork) &
+                          , real(work_dummy(1),kind=sp) < real(huge(lwork),kind=sp) )
             allocate(work(lwork))
 
             !> Compute SVD
@@ -362,7 +365,6 @@ submodule(stdlib_linalg) stdlib_linalg_svd
          character :: task
          real(dp), target :: work_dummy(1),u_dummy(1,1),vt_dummy(1,1)
          real(dp), allocatable :: work(:)
-         real(dp), allocatable :: rwork(:)
          real(dp), pointer :: amat(:,:),umat(:,:),vtmat(:,:)
 
          !> Matrix determinant size
@@ -475,7 +477,11 @@ submodule(stdlib_linalg) stdlib_linalg_svd
          if (info==0) then
 
             !> Prepare working storage
-            lwork = nint(real(work_dummy(1),kind=dp), kind=ilp)
+            ! Check if the returned working storage space is smaller than the largest value
+            ! allowed by lwork
+            lwork = merge(nint(real(work_dummy(1),kind=dp), kind=ilp) &
+                          , huge(lwork) &
+                          , real(work_dummy(1),kind=dp) < real(huge(lwork),kind=dp) )
             allocate(work(lwork))
 
             !> Compute SVD
@@ -698,7 +704,11 @@ submodule(stdlib_linalg) stdlib_linalg_svd
          if (info==0) then
 
             !> Prepare working storage
-            lwork = nint(real(work_dummy(1),kind=sp), kind=ilp)
+            ! Check if the returned working storage space is smaller than the largest value
+            ! allowed by lwork
+            lwork = merge(nint(real(work_dummy(1),kind=sp), kind=ilp) &
+                          , huge(lwork) &
+                          , real(work_dummy(1),kind=sp) < real(huge(lwork),kind=sp) )
             allocate(work(lwork))
 
             !> Compute SVD
@@ -921,7 +931,11 @@ submodule(stdlib_linalg) stdlib_linalg_svd
          if (info==0) then
 
             !> Prepare working storage
-            lwork = nint(real(work_dummy(1),kind=dp), kind=ilp)
+            ! Check if the returned working storage space is smaller than the largest value
+            ! allowed by lwork
+            lwork = merge(nint(real(work_dummy(1),kind=dp), kind=ilp) &
+                          , huge(lwork) &
+                          , real(work_dummy(1),kind=dp) < real(huge(lwork),kind=dp) )
             allocate(work(lwork))
 
             !> Compute SVD

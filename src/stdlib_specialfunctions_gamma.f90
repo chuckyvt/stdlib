@@ -311,7 +311,7 @@ contains
         integer :: i
 
         real(sp), parameter :: zero_k1 = 0.0_sp
-        real(dp), parameter :: zero = 0.0_dp, half = 0.5_dp,             &
+        real(dp), parameter :: half = 0.5_dp,             &
                              one = 1.0_dp, pi = acos(- one), sqpi = sqrt(pi)
         complex(dp) :: y, x, sum
 
@@ -380,7 +380,7 @@ contains
         integer :: i
 
         real(dp), parameter :: zero_k1 = 0.0_dp
-        real(qp), parameter :: zero = 0.0_qp, half = 0.5_qp,             &
+        real(qp), parameter :: half = 0.5_qp,             &
                              one = 1.0_qp, pi = acos(- one), sqpi = sqrt(pi)
         complex(qp) :: y, x, sum
 
@@ -1066,9 +1066,9 @@ contains
     ! Log(n!)
     !
         integer(int8), intent(in) :: n
-        real :: res
+        real(dp) :: res
         integer(int8), parameter :: zero = 0_int8, one = 1_int8, two = 2_int8
-        real, parameter :: zero_k2 = 0.0
+        real(dp), parameter :: zero_dp = 0.0_dp
 
         if(n < zero) call error_stop("Error(l_factorial): Logarithm of"        &
             //" factorial function argument must be non-negative")
@@ -1077,15 +1077,15 @@ contains
 
         case (zero)
 
-            res = zero_k2
+            res = zero_dp
 
         case (one)
 
-            res = zero_k2
+            res = zero_dp
 
         case (two : )
 
-            res = l_gamma(n + 1, 1.0D0)
+            res = l_gamma(n + 1, 1.0_dp)
 
         end select
     end function l_factorial_iint8
@@ -1095,9 +1095,9 @@ contains
     ! Log(n!)
     !
         integer(int16), intent(in) :: n
-        real :: res
+        real(dp) :: res
         integer(int16), parameter :: zero = 0_int16, one = 1_int16, two = 2_int16
-        real, parameter :: zero_k2 = 0.0
+        real(dp), parameter :: zero_dp = 0.0_dp
 
         if(n < zero) call error_stop("Error(l_factorial): Logarithm of"        &
             //" factorial function argument must be non-negative")
@@ -1106,15 +1106,15 @@ contains
 
         case (zero)
 
-            res = zero_k2
+            res = zero_dp
 
         case (one)
 
-            res = zero_k2
+            res = zero_dp
 
         case (two : )
 
-            res = l_gamma(n + 1, 1.0D0)
+            res = l_gamma(n + 1, 1.0_dp)
 
         end select
     end function l_factorial_iint16
@@ -1124,9 +1124,9 @@ contains
     ! Log(n!)
     !
         integer(int32), intent(in) :: n
-        real :: res
+        real(dp) :: res
         integer(int32), parameter :: zero = 0_int32, one = 1_int32, two = 2_int32
-        real, parameter :: zero_k2 = 0.0
+        real(dp), parameter :: zero_dp = 0.0_dp
 
         if(n < zero) call error_stop("Error(l_factorial): Logarithm of"        &
             //" factorial function argument must be non-negative")
@@ -1135,15 +1135,15 @@ contains
 
         case (zero)
 
-            res = zero_k2
+            res = zero_dp
 
         case (one)
 
-            res = zero_k2
+            res = zero_dp
 
         case (two : )
 
-            res = l_gamma(n + 1, 1.0D0)
+            res = l_gamma(n + 1, 1.0_dp)
 
         end select
     end function l_factorial_iint32
@@ -1153,9 +1153,9 @@ contains
     ! Log(n!)
     !
         integer(int64), intent(in) :: n
-        real :: res
+        real(dp) :: res
         integer(int64), parameter :: zero = 0_int64, one = 1_int64, two = 2_int64
-        real, parameter :: zero_k2 = 0.0
+        real(dp), parameter :: zero_dp = 0.0_dp
 
         if(n < zero) call error_stop("Error(l_factorial): Logarithm of"        &
             //" factorial function argument must be non-negative")
@@ -1164,15 +1164,15 @@ contains
 
         case (zero)
 
-            res = zero_k2
+            res = zero_dp
 
         case (one)
 
-            res = zero_k2
+            res = zero_dp
 
         case (two : )
 
-            res = l_gamma(n + 1, 1.0D0)
+            res = l_gamma(n + 1, 1.0_dp)
 
         end select
     end function l_factorial_iint64
@@ -1462,7 +1462,7 @@ contains
         integer(int8), intent(in) :: p
         real(sp), intent(in) :: x
         real(sp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(sp), parameter :: zero = 0.0_sp, one = 1.0_sp
         real(sp), parameter :: dm = tiny(1.0_sp) * 10 ** 6
         integer(int8), parameter :: zero_k1 = 0_int8, two = 2_int8
@@ -1595,7 +1595,7 @@ contains
         integer(int8), intent(in) :: p
         real(dp), intent(in) :: x
         real(dp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(dp), parameter :: zero = 0.0_dp, one = 1.0_dp
         real(dp), parameter :: dm = tiny(1.0_dp) * 10 ** 6
         integer(int8), parameter :: zero_k1 = 0_int8, two = 2_int8
@@ -1728,7 +1728,7 @@ contains
         integer(int16), intent(in) :: p
         real(sp), intent(in) :: x
         real(sp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(sp), parameter :: zero = 0.0_sp, one = 1.0_sp
         real(sp), parameter :: dm = tiny(1.0_sp) * 10 ** 6
         integer(int16), parameter :: zero_k1 = 0_int16, two = 2_int16
@@ -1861,7 +1861,7 @@ contains
         integer(int16), intent(in) :: p
         real(dp), intent(in) :: x
         real(dp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(dp), parameter :: zero = 0.0_dp, one = 1.0_dp
         real(dp), parameter :: dm = tiny(1.0_dp) * 10 ** 6
         integer(int16), parameter :: zero_k1 = 0_int16, two = 2_int16
@@ -1994,7 +1994,7 @@ contains
         integer(int32), intent(in) :: p
         real(sp), intent(in) :: x
         real(sp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(sp), parameter :: zero = 0.0_sp, one = 1.0_sp
         real(sp), parameter :: dm = tiny(1.0_sp) * 10 ** 6
         integer(int32), parameter :: zero_k1 = 0_int32, two = 2_int32
@@ -2127,7 +2127,7 @@ contains
         integer(int32), intent(in) :: p
         real(dp), intent(in) :: x
         real(dp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(dp), parameter :: zero = 0.0_dp, one = 1.0_dp
         real(dp), parameter :: dm = tiny(1.0_dp) * 10 ** 6
         integer(int32), parameter :: zero_k1 = 0_int32, two = 2_int32
@@ -2260,7 +2260,7 @@ contains
         integer(int64), intent(in) :: p
         real(sp), intent(in) :: x
         real(sp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(sp), parameter :: zero = 0.0_sp, one = 1.0_sp
         real(sp), parameter :: dm = tiny(1.0_sp) * 10 ** 6
         integer(int64), parameter :: zero_k1 = 0_int64, two = 2_int64
@@ -2393,7 +2393,7 @@ contains
         integer(int64), intent(in) :: p
         real(dp), intent(in) :: x
         real(dp) :: res, p_lim, a, b, g, c, d, y
-        integer :: n, m
+        integer :: n
         real(dp), parameter :: zero = 0.0_dp, one = 1.0_dp
         real(dp), parameter :: dm = tiny(1.0_dp) * 10 ** 6
         integer(int64), parameter :: zero_k1 = 0_int64, two = 2_int64

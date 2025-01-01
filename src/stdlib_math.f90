@@ -1,11 +1,11 @@
-
 module stdlib_math
     use stdlib_kinds, only: int8, int16, int32, int64, sp, dp, xdp, qp
     use stdlib_optval, only: optval
+    use stdlib_bitsets, only: bitset_64, bitset_large
 
     implicit none
     private
-    public :: clip, gcd, linspace, logspace
+    public :: clip, swap, gcd, linspace, logspace
     public :: EULERS_NUMBER_SP, EULERS_NUMBER_DP
     public :: DEFAULT_LINSPACE_LENGTH, DEFAULT_LOGSPACE_BASE, DEFAULT_LOGSPACE_LENGTH
     public :: stdlib_meshgrid_ij, stdlib_meshgrid_xy
@@ -34,6 +34,26 @@ module stdlib_math
         module procedure clip_sp
         module procedure clip_dp
     end interface clip
+
+    !> Swap the values of the lhs and rhs arguments
+    !> ([Specification](../page/specs/stdlib_math.html#swap_subroutine))
+    !>
+    !> Version: experimental
+    interface swap
+      module procedure :: swap_int8
+      module procedure :: swap_int16
+      module procedure :: swap_int32
+      module procedure :: swap_int64
+      module procedure :: swap_sp
+      module procedure :: swap_dp
+      module procedure :: swap_bitset_64
+      module procedure :: swap_bitset_large
+      module procedure :: swap_csp
+      module procedure :: swap_cdp
+      module procedure :: swap_bool
+      module procedure :: swap_str
+      module procedure :: swap_stt
+    end interface
 
     !> Returns the greatest common divisor of two integers
     !> ([Specification](../page/specs/stdlib_math.html#gcd))
@@ -557,21 +577,6 @@ module stdlib_math
             real(sp), intent(in), optional :: rel_tol, abs_tol
             logical, intent(in), optional :: equal_nan
         end function all_close_4_rsp
-        logical pure module function all_close_5_rsp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            real(sp), intent(in) :: a(:,:,:,:,:), b(:,:,:,:,:)
-            real(sp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_5_rsp
-        logical pure module function all_close_6_rsp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            real(sp), intent(in) :: a(:,:,:,:,:,:), b(:,:,:,:,:,:)
-            real(sp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_6_rsp
-        logical pure module function all_close_7_rsp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            real(sp), intent(in) :: a(:,:,:,:,:,:,:), b(:,:,:,:,:,:,:)
-            real(sp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_7_rsp
         logical pure module function all_close_1_rdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
             real(dp), intent(in) :: a(:), b(:)
             real(dp), intent(in), optional :: rel_tol, abs_tol
@@ -592,21 +597,6 @@ module stdlib_math
             real(dp), intent(in), optional :: rel_tol, abs_tol
             logical, intent(in), optional :: equal_nan
         end function all_close_4_rdp
-        logical pure module function all_close_5_rdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            real(dp), intent(in) :: a(:,:,:,:,:), b(:,:,:,:,:)
-            real(dp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_5_rdp
-        logical pure module function all_close_6_rdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            real(dp), intent(in) :: a(:,:,:,:,:,:), b(:,:,:,:,:,:)
-            real(dp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_6_rdp
-        logical pure module function all_close_7_rdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            real(dp), intent(in) :: a(:,:,:,:,:,:,:), b(:,:,:,:,:,:,:)
-            real(dp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_7_rdp
         logical pure module function all_close_1_csp(a, b, rel_tol, abs_tol, equal_nan) result(close)
             complex(sp), intent(in) :: a(:), b(:)
             real(sp), intent(in), optional :: rel_tol, abs_tol
@@ -627,21 +617,6 @@ module stdlib_math
             real(sp), intent(in), optional :: rel_tol, abs_tol
             logical, intent(in), optional :: equal_nan
         end function all_close_4_csp
-        logical pure module function all_close_5_csp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            complex(sp), intent(in) :: a(:,:,:,:,:), b(:,:,:,:,:)
-            real(sp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_5_csp
-        logical pure module function all_close_6_csp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            complex(sp), intent(in) :: a(:,:,:,:,:,:), b(:,:,:,:,:,:)
-            real(sp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_6_csp
-        logical pure module function all_close_7_csp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            complex(sp), intent(in) :: a(:,:,:,:,:,:,:), b(:,:,:,:,:,:,:)
-            real(sp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_7_csp
         logical pure module function all_close_1_cdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
             complex(dp), intent(in) :: a(:), b(:)
             real(dp), intent(in), optional :: rel_tol, abs_tol
@@ -662,21 +637,6 @@ module stdlib_math
             real(dp), intent(in), optional :: rel_tol, abs_tol
             logical, intent(in), optional :: equal_nan
         end function all_close_4_cdp
-        logical pure module function all_close_5_cdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            complex(dp), intent(in) :: a(:,:,:,:,:), b(:,:,:,:,:)
-            real(dp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_5_cdp
-        logical pure module function all_close_6_cdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            complex(dp), intent(in) :: a(:,:,:,:,:,:), b(:,:,:,:,:,:)
-            real(dp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_6_cdp
-        logical pure module function all_close_7_cdp(a, b, rel_tol, abs_tol, equal_nan) result(close)
-            complex(dp), intent(in) :: a(:,:,:,:,:,:,:), b(:,:,:,:,:,:,:)
-            real(dp), intent(in), optional :: rel_tol, abs_tol
-            logical, intent(in), optional :: equal_nan
-        end function all_close_7_cdp
     end interface all_close
     
     !> Version: experimental
@@ -812,63 +772,6 @@ module stdlib_math
             integer(int8), intent(out) :: xm4 (:,:,:,:)
             integer, intent(in), optional :: indexing
         end subroutine meshgrid_4_iint8_iint8
-        module subroutine meshgrid_5_iint8_iint8(&
-                x1, x2, x3, x4, x5,  &
-                xm1, xm2, xm3, xm4, xm5,  &
-                indexing &
-        )
-            integer(int8), intent(in) :: x1(:)
-            integer(int8), intent(out) :: xm1 (:,:,:,:,:)
-            integer(int8), intent(in) :: x2(:)
-            integer(int8), intent(out) :: xm2 (:,:,:,:,:)
-            integer(int8), intent(in) :: x3(:)
-            integer(int8), intent(out) :: xm3 (:,:,:,:,:)
-            integer(int8), intent(in) :: x4(:)
-            integer(int8), intent(out) :: xm4 (:,:,:,:,:)
-            integer(int8), intent(in) :: x5(:)
-            integer(int8), intent(out) :: xm5 (:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_5_iint8_iint8
-        module subroutine meshgrid_6_iint8_iint8(&
-                x1, x2, x3, x4, x5, x6,  &
-                xm1, xm2, xm3, xm4, xm5, xm6,  &
-                indexing &
-        )
-            integer(int8), intent(in) :: x1(:)
-            integer(int8), intent(out) :: xm1 (:,:,:,:,:,:)
-            integer(int8), intent(in) :: x2(:)
-            integer(int8), intent(out) :: xm2 (:,:,:,:,:,:)
-            integer(int8), intent(in) :: x3(:)
-            integer(int8), intent(out) :: xm3 (:,:,:,:,:,:)
-            integer(int8), intent(in) :: x4(:)
-            integer(int8), intent(out) :: xm4 (:,:,:,:,:,:)
-            integer(int8), intent(in) :: x5(:)
-            integer(int8), intent(out) :: xm5 (:,:,:,:,:,:)
-            integer(int8), intent(in) :: x6(:)
-            integer(int8), intent(out) :: xm6 (:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_6_iint8_iint8
-        module subroutine meshgrid_7_iint8_iint8(&
-                x1, x2, x3, x4, x5, x6, x7,  &
-                xm1, xm2, xm3, xm4, xm5, xm6, xm7,  &
-                indexing &
-        )
-            integer(int8), intent(in) :: x1(:)
-            integer(int8), intent(out) :: xm1 (:,:,:,:,:,:,:)
-            integer(int8), intent(in) :: x2(:)
-            integer(int8), intent(out) :: xm2 (:,:,:,:,:,:,:)
-            integer(int8), intent(in) :: x3(:)
-            integer(int8), intent(out) :: xm3 (:,:,:,:,:,:,:)
-            integer(int8), intent(in) :: x4(:)
-            integer(int8), intent(out) :: xm4 (:,:,:,:,:,:,:)
-            integer(int8), intent(in) :: x5(:)
-            integer(int8), intent(out) :: xm5 (:,:,:,:,:,:,:)
-            integer(int8), intent(in) :: x6(:)
-            integer(int8), intent(out) :: xm6 (:,:,:,:,:,:,:)
-            integer(int8), intent(in) :: x7(:)
-            integer(int8), intent(out) :: xm7 (:,:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_7_iint8_iint8
         module subroutine meshgrid_1_iint16_iint16(&
                 x1,  &
                 xm1,  &
@@ -917,63 +820,6 @@ module stdlib_math
             integer(int16), intent(out) :: xm4 (:,:,:,:)
             integer, intent(in), optional :: indexing
         end subroutine meshgrid_4_iint16_iint16
-        module subroutine meshgrid_5_iint16_iint16(&
-                x1, x2, x3, x4, x5,  &
-                xm1, xm2, xm3, xm4, xm5,  &
-                indexing &
-        )
-            integer(int16), intent(in) :: x1(:)
-            integer(int16), intent(out) :: xm1 (:,:,:,:,:)
-            integer(int16), intent(in) :: x2(:)
-            integer(int16), intent(out) :: xm2 (:,:,:,:,:)
-            integer(int16), intent(in) :: x3(:)
-            integer(int16), intent(out) :: xm3 (:,:,:,:,:)
-            integer(int16), intent(in) :: x4(:)
-            integer(int16), intent(out) :: xm4 (:,:,:,:,:)
-            integer(int16), intent(in) :: x5(:)
-            integer(int16), intent(out) :: xm5 (:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_5_iint16_iint16
-        module subroutine meshgrid_6_iint16_iint16(&
-                x1, x2, x3, x4, x5, x6,  &
-                xm1, xm2, xm3, xm4, xm5, xm6,  &
-                indexing &
-        )
-            integer(int16), intent(in) :: x1(:)
-            integer(int16), intent(out) :: xm1 (:,:,:,:,:,:)
-            integer(int16), intent(in) :: x2(:)
-            integer(int16), intent(out) :: xm2 (:,:,:,:,:,:)
-            integer(int16), intent(in) :: x3(:)
-            integer(int16), intent(out) :: xm3 (:,:,:,:,:,:)
-            integer(int16), intent(in) :: x4(:)
-            integer(int16), intent(out) :: xm4 (:,:,:,:,:,:)
-            integer(int16), intent(in) :: x5(:)
-            integer(int16), intent(out) :: xm5 (:,:,:,:,:,:)
-            integer(int16), intent(in) :: x6(:)
-            integer(int16), intent(out) :: xm6 (:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_6_iint16_iint16
-        module subroutine meshgrid_7_iint16_iint16(&
-                x1, x2, x3, x4, x5, x6, x7,  &
-                xm1, xm2, xm3, xm4, xm5, xm6, xm7,  &
-                indexing &
-        )
-            integer(int16), intent(in) :: x1(:)
-            integer(int16), intent(out) :: xm1 (:,:,:,:,:,:,:)
-            integer(int16), intent(in) :: x2(:)
-            integer(int16), intent(out) :: xm2 (:,:,:,:,:,:,:)
-            integer(int16), intent(in) :: x3(:)
-            integer(int16), intent(out) :: xm3 (:,:,:,:,:,:,:)
-            integer(int16), intent(in) :: x4(:)
-            integer(int16), intent(out) :: xm4 (:,:,:,:,:,:,:)
-            integer(int16), intent(in) :: x5(:)
-            integer(int16), intent(out) :: xm5 (:,:,:,:,:,:,:)
-            integer(int16), intent(in) :: x6(:)
-            integer(int16), intent(out) :: xm6 (:,:,:,:,:,:,:)
-            integer(int16), intent(in) :: x7(:)
-            integer(int16), intent(out) :: xm7 (:,:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_7_iint16_iint16
         module subroutine meshgrid_1_iint32_iint32(&
                 x1,  &
                 xm1,  &
@@ -1022,63 +868,6 @@ module stdlib_math
             integer(int32), intent(out) :: xm4 (:,:,:,:)
             integer, intent(in), optional :: indexing
         end subroutine meshgrid_4_iint32_iint32
-        module subroutine meshgrid_5_iint32_iint32(&
-                x1, x2, x3, x4, x5,  &
-                xm1, xm2, xm3, xm4, xm5,  &
-                indexing &
-        )
-            integer(int32), intent(in) :: x1(:)
-            integer(int32), intent(out) :: xm1 (:,:,:,:,:)
-            integer(int32), intent(in) :: x2(:)
-            integer(int32), intent(out) :: xm2 (:,:,:,:,:)
-            integer(int32), intent(in) :: x3(:)
-            integer(int32), intent(out) :: xm3 (:,:,:,:,:)
-            integer(int32), intent(in) :: x4(:)
-            integer(int32), intent(out) :: xm4 (:,:,:,:,:)
-            integer(int32), intent(in) :: x5(:)
-            integer(int32), intent(out) :: xm5 (:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_5_iint32_iint32
-        module subroutine meshgrid_6_iint32_iint32(&
-                x1, x2, x3, x4, x5, x6,  &
-                xm1, xm2, xm3, xm4, xm5, xm6,  &
-                indexing &
-        )
-            integer(int32), intent(in) :: x1(:)
-            integer(int32), intent(out) :: xm1 (:,:,:,:,:,:)
-            integer(int32), intent(in) :: x2(:)
-            integer(int32), intent(out) :: xm2 (:,:,:,:,:,:)
-            integer(int32), intent(in) :: x3(:)
-            integer(int32), intent(out) :: xm3 (:,:,:,:,:,:)
-            integer(int32), intent(in) :: x4(:)
-            integer(int32), intent(out) :: xm4 (:,:,:,:,:,:)
-            integer(int32), intent(in) :: x5(:)
-            integer(int32), intent(out) :: xm5 (:,:,:,:,:,:)
-            integer(int32), intent(in) :: x6(:)
-            integer(int32), intent(out) :: xm6 (:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_6_iint32_iint32
-        module subroutine meshgrid_7_iint32_iint32(&
-                x1, x2, x3, x4, x5, x6, x7,  &
-                xm1, xm2, xm3, xm4, xm5, xm6, xm7,  &
-                indexing &
-        )
-            integer(int32), intent(in) :: x1(:)
-            integer(int32), intent(out) :: xm1 (:,:,:,:,:,:,:)
-            integer(int32), intent(in) :: x2(:)
-            integer(int32), intent(out) :: xm2 (:,:,:,:,:,:,:)
-            integer(int32), intent(in) :: x3(:)
-            integer(int32), intent(out) :: xm3 (:,:,:,:,:,:,:)
-            integer(int32), intent(in) :: x4(:)
-            integer(int32), intent(out) :: xm4 (:,:,:,:,:,:,:)
-            integer(int32), intent(in) :: x5(:)
-            integer(int32), intent(out) :: xm5 (:,:,:,:,:,:,:)
-            integer(int32), intent(in) :: x6(:)
-            integer(int32), intent(out) :: xm6 (:,:,:,:,:,:,:)
-            integer(int32), intent(in) :: x7(:)
-            integer(int32), intent(out) :: xm7 (:,:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_7_iint32_iint32
         module subroutine meshgrid_1_iint64_iint64(&
                 x1,  &
                 xm1,  &
@@ -1127,63 +916,6 @@ module stdlib_math
             integer(int64), intent(out) :: xm4 (:,:,:,:)
             integer, intent(in), optional :: indexing
         end subroutine meshgrid_4_iint64_iint64
-        module subroutine meshgrid_5_iint64_iint64(&
-                x1, x2, x3, x4, x5,  &
-                xm1, xm2, xm3, xm4, xm5,  &
-                indexing &
-        )
-            integer(int64), intent(in) :: x1(:)
-            integer(int64), intent(out) :: xm1 (:,:,:,:,:)
-            integer(int64), intent(in) :: x2(:)
-            integer(int64), intent(out) :: xm2 (:,:,:,:,:)
-            integer(int64), intent(in) :: x3(:)
-            integer(int64), intent(out) :: xm3 (:,:,:,:,:)
-            integer(int64), intent(in) :: x4(:)
-            integer(int64), intent(out) :: xm4 (:,:,:,:,:)
-            integer(int64), intent(in) :: x5(:)
-            integer(int64), intent(out) :: xm5 (:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_5_iint64_iint64
-        module subroutine meshgrid_6_iint64_iint64(&
-                x1, x2, x3, x4, x5, x6,  &
-                xm1, xm2, xm3, xm4, xm5, xm6,  &
-                indexing &
-        )
-            integer(int64), intent(in) :: x1(:)
-            integer(int64), intent(out) :: xm1 (:,:,:,:,:,:)
-            integer(int64), intent(in) :: x2(:)
-            integer(int64), intent(out) :: xm2 (:,:,:,:,:,:)
-            integer(int64), intent(in) :: x3(:)
-            integer(int64), intent(out) :: xm3 (:,:,:,:,:,:)
-            integer(int64), intent(in) :: x4(:)
-            integer(int64), intent(out) :: xm4 (:,:,:,:,:,:)
-            integer(int64), intent(in) :: x5(:)
-            integer(int64), intent(out) :: xm5 (:,:,:,:,:,:)
-            integer(int64), intent(in) :: x6(:)
-            integer(int64), intent(out) :: xm6 (:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_6_iint64_iint64
-        module subroutine meshgrid_7_iint64_iint64(&
-                x1, x2, x3, x4, x5, x6, x7,  &
-                xm1, xm2, xm3, xm4, xm5, xm6, xm7,  &
-                indexing &
-        )
-            integer(int64), intent(in) :: x1(:)
-            integer(int64), intent(out) :: xm1 (:,:,:,:,:,:,:)
-            integer(int64), intent(in) :: x2(:)
-            integer(int64), intent(out) :: xm2 (:,:,:,:,:,:,:)
-            integer(int64), intent(in) :: x3(:)
-            integer(int64), intent(out) :: xm3 (:,:,:,:,:,:,:)
-            integer(int64), intent(in) :: x4(:)
-            integer(int64), intent(out) :: xm4 (:,:,:,:,:,:,:)
-            integer(int64), intent(in) :: x5(:)
-            integer(int64), intent(out) :: xm5 (:,:,:,:,:,:,:)
-            integer(int64), intent(in) :: x6(:)
-            integer(int64), intent(out) :: xm6 (:,:,:,:,:,:,:)
-            integer(int64), intent(in) :: x7(:)
-            integer(int64), intent(out) :: xm7 (:,:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_7_iint64_iint64
         module subroutine meshgrid_1_rsp_rsp(&
                 x1,  &
                 xm1,  &
@@ -1232,63 +964,6 @@ module stdlib_math
             real(sp), intent(out) :: xm4 (:,:,:,:)
             integer, intent(in), optional :: indexing
         end subroutine meshgrid_4_rsp_rsp
-        module subroutine meshgrid_5_rsp_rsp(&
-                x1, x2, x3, x4, x5,  &
-                xm1, xm2, xm3, xm4, xm5,  &
-                indexing &
-        )
-            real(sp), intent(in) :: x1(:)
-            real(sp), intent(out) :: xm1 (:,:,:,:,:)
-            real(sp), intent(in) :: x2(:)
-            real(sp), intent(out) :: xm2 (:,:,:,:,:)
-            real(sp), intent(in) :: x3(:)
-            real(sp), intent(out) :: xm3 (:,:,:,:,:)
-            real(sp), intent(in) :: x4(:)
-            real(sp), intent(out) :: xm4 (:,:,:,:,:)
-            real(sp), intent(in) :: x5(:)
-            real(sp), intent(out) :: xm5 (:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_5_rsp_rsp
-        module subroutine meshgrid_6_rsp_rsp(&
-                x1, x2, x3, x4, x5, x6,  &
-                xm1, xm2, xm3, xm4, xm5, xm6,  &
-                indexing &
-        )
-            real(sp), intent(in) :: x1(:)
-            real(sp), intent(out) :: xm1 (:,:,:,:,:,:)
-            real(sp), intent(in) :: x2(:)
-            real(sp), intent(out) :: xm2 (:,:,:,:,:,:)
-            real(sp), intent(in) :: x3(:)
-            real(sp), intent(out) :: xm3 (:,:,:,:,:,:)
-            real(sp), intent(in) :: x4(:)
-            real(sp), intent(out) :: xm4 (:,:,:,:,:,:)
-            real(sp), intent(in) :: x5(:)
-            real(sp), intent(out) :: xm5 (:,:,:,:,:,:)
-            real(sp), intent(in) :: x6(:)
-            real(sp), intent(out) :: xm6 (:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_6_rsp_rsp
-        module subroutine meshgrid_7_rsp_rsp(&
-                x1, x2, x3, x4, x5, x6, x7,  &
-                xm1, xm2, xm3, xm4, xm5, xm6, xm7,  &
-                indexing &
-        )
-            real(sp), intent(in) :: x1(:)
-            real(sp), intent(out) :: xm1 (:,:,:,:,:,:,:)
-            real(sp), intent(in) :: x2(:)
-            real(sp), intent(out) :: xm2 (:,:,:,:,:,:,:)
-            real(sp), intent(in) :: x3(:)
-            real(sp), intent(out) :: xm3 (:,:,:,:,:,:,:)
-            real(sp), intent(in) :: x4(:)
-            real(sp), intent(out) :: xm4 (:,:,:,:,:,:,:)
-            real(sp), intent(in) :: x5(:)
-            real(sp), intent(out) :: xm5 (:,:,:,:,:,:,:)
-            real(sp), intent(in) :: x6(:)
-            real(sp), intent(out) :: xm6 (:,:,:,:,:,:,:)
-            real(sp), intent(in) :: x7(:)
-            real(sp), intent(out) :: xm7 (:,:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_7_rsp_rsp
         module subroutine meshgrid_1_rdp_rdp(&
                 x1,  &
                 xm1,  &
@@ -1337,63 +1012,6 @@ module stdlib_math
             real(dp), intent(out) :: xm4 (:,:,:,:)
             integer, intent(in), optional :: indexing
         end subroutine meshgrid_4_rdp_rdp
-        module subroutine meshgrid_5_rdp_rdp(&
-                x1, x2, x3, x4, x5,  &
-                xm1, xm2, xm3, xm4, xm5,  &
-                indexing &
-        )
-            real(dp), intent(in) :: x1(:)
-            real(dp), intent(out) :: xm1 (:,:,:,:,:)
-            real(dp), intent(in) :: x2(:)
-            real(dp), intent(out) :: xm2 (:,:,:,:,:)
-            real(dp), intent(in) :: x3(:)
-            real(dp), intent(out) :: xm3 (:,:,:,:,:)
-            real(dp), intent(in) :: x4(:)
-            real(dp), intent(out) :: xm4 (:,:,:,:,:)
-            real(dp), intent(in) :: x5(:)
-            real(dp), intent(out) :: xm5 (:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_5_rdp_rdp
-        module subroutine meshgrid_6_rdp_rdp(&
-                x1, x2, x3, x4, x5, x6,  &
-                xm1, xm2, xm3, xm4, xm5, xm6,  &
-                indexing &
-        )
-            real(dp), intent(in) :: x1(:)
-            real(dp), intent(out) :: xm1 (:,:,:,:,:,:)
-            real(dp), intent(in) :: x2(:)
-            real(dp), intent(out) :: xm2 (:,:,:,:,:,:)
-            real(dp), intent(in) :: x3(:)
-            real(dp), intent(out) :: xm3 (:,:,:,:,:,:)
-            real(dp), intent(in) :: x4(:)
-            real(dp), intent(out) :: xm4 (:,:,:,:,:,:)
-            real(dp), intent(in) :: x5(:)
-            real(dp), intent(out) :: xm5 (:,:,:,:,:,:)
-            real(dp), intent(in) :: x6(:)
-            real(dp), intent(out) :: xm6 (:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_6_rdp_rdp
-        module subroutine meshgrid_7_rdp_rdp(&
-                x1, x2, x3, x4, x5, x6, x7,  &
-                xm1, xm2, xm3, xm4, xm5, xm6, xm7,  &
-                indexing &
-        )
-            real(dp), intent(in) :: x1(:)
-            real(dp), intent(out) :: xm1 (:,:,:,:,:,:,:)
-            real(dp), intent(in) :: x2(:)
-            real(dp), intent(out) :: xm2 (:,:,:,:,:,:,:)
-            real(dp), intent(in) :: x3(:)
-            real(dp), intent(out) :: xm3 (:,:,:,:,:,:,:)
-            real(dp), intent(in) :: x4(:)
-            real(dp), intent(out) :: xm4 (:,:,:,:,:,:,:)
-            real(dp), intent(in) :: x5(:)
-            real(dp), intent(out) :: xm5 (:,:,:,:,:,:,:)
-            real(dp), intent(in) :: x6(:)
-            real(dp), intent(out) :: xm6 (:,:,:,:,:,:,:)
-            real(dp), intent(in) :: x7(:)
-            real(dp), intent(out) :: xm7 (:,:,:,:,:,:,:)
-            integer, intent(in), optional :: indexing
-        end subroutine meshgrid_7_rdp_rdp
     end interface meshgrid
 contains
 
@@ -1604,5 +1222,86 @@ contains
         end do
     end function gcd_int64
 
+
+    elemental subroutine swap_int8(lhs, rhs)
+        integer(int8), intent(inout) :: lhs, rhs
+        integer(int8) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_int16(lhs, rhs)
+        integer(int16), intent(inout) :: lhs, rhs
+        integer(int16) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_int32(lhs, rhs)
+        integer(int32), intent(inout) :: lhs, rhs
+        integer(int32) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_int64(lhs, rhs)
+        integer(int64), intent(inout) :: lhs, rhs
+        integer(int64) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_sp(lhs, rhs)
+        real(sp), intent(inout) :: lhs, rhs
+        real(sp) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_dp(lhs, rhs)
+        real(dp), intent(inout) :: lhs, rhs
+        real(dp) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_bitset_64(lhs, rhs)
+        type(bitset_64), intent(inout) :: lhs, rhs
+        type(bitset_64) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_bitset_large(lhs, rhs)
+        type(bitset_large), intent(inout) :: lhs, rhs
+        type(bitset_large) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+
+    elemental subroutine swap_csp(lhs, rhs)
+        complex(sp), intent(inout) :: lhs, rhs
+        complex(sp) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_cdp(lhs, rhs)
+        complex(dp), intent(inout) :: lhs, rhs
+        complex(dp) :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+
+    elemental subroutine swap_bool(lhs, rhs)
+        logical, intent(inout) :: lhs, rhs
+        logical :: temp
+        temp = lhs; lhs = rhs; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_str(lhs,rhs)
+        character(*), intent(inout) :: lhs, rhs
+        character(len=max(len(lhs), len(rhs))) :: temp
+        temp = lhs ; lhs = rhs ; rhs = temp
+    end subroutine
+
+    elemental subroutine swap_stt(lhs,rhs)
+        use stdlib_string_type, only: string_type
+        type(string_type), intent(inout) :: lhs, rhs
+        type(string_type) :: temp
+        temp = lhs ; lhs = rhs ; rhs = temp
+    end subroutine
     
 end module stdlib_math

@@ -127,7 +127,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -146,25 +147,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
+      
       ! Default to format used for savetxt if fmt not specified.
-      fmt_ = optval(fmt, "(*"//FMT_REAL_sp(1:len(FMT_REAL_sp)-1)//",1x))")
+      fmt_ = optval(fmt, "(*"//FMT_REAL_sp(1:len(FMT_REAL_sp)-1)//",:,1x))")
 
       if ( fmt_ == '*' ) then
         ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
-        ! Otherwise pass default or user specified fmt string.  
+        ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_rsp
     subroutine  loadtxt_rdp(filename, d, skiprows, max_rows, fmt)
@@ -206,7 +227,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -225,25 +247,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
+      
       ! Default to format used for savetxt if fmt not specified.
-      fmt_ = optval(fmt, "(*"//FMT_REAL_dp(1:len(FMT_REAL_dp)-1)//",1x))")
+      fmt_ = optval(fmt, "(*"//FMT_REAL_dp(1:len(FMT_REAL_dp)-1)//",:,1x))")
 
       if ( fmt_ == '*' ) then
         ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
-        ! Otherwise pass default or user specified fmt string.  
+        ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_rdp
     subroutine  loadtxt_iint8(filename, d, skiprows, max_rows, fmt)
@@ -285,7 +327,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -304,25 +347,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
-      ! Default to list directed for integer
+      
+      ! Default to format used for savetxt if fmt not specified.
       fmt_ = optval(fmt, "*")
-      ! Use list directed read if user has specified fmt='*'
+
       if ( fmt_ == '*' ) then
+        ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
-        ! Otherwise pass default user specified fmt string.
+        ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
-
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_iint8
     subroutine  loadtxt_iint16(filename, d, skiprows, max_rows, fmt)
@@ -364,7 +427,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -383,25 +447,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
-      ! Default to list directed for integer
+      
+      ! Default to format used for savetxt if fmt not specified.
       fmt_ = optval(fmt, "*")
-      ! Use list directed read if user has specified fmt='*'
+
       if ( fmt_ == '*' ) then
+        ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
-        ! Otherwise pass default user specified fmt string.
+        ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
-
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_iint16
     subroutine  loadtxt_iint32(filename, d, skiprows, max_rows, fmt)
@@ -443,7 +527,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -462,25 +547,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
-      ! Default to list directed for integer
+      
+      ! Default to format used for savetxt if fmt not specified.
       fmt_ = optval(fmt, "*")
-      ! Use list directed read if user has specified fmt='*'
+
       if ( fmt_ == '*' ) then
+        ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
-        ! Otherwise pass default user specified fmt string.
+        ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
-
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_iint32
     subroutine  loadtxt_iint64(filename, d, skiprows, max_rows, fmt)
@@ -522,7 +627,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -541,25 +647,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
-      ! Default to list directed for integer
+      
+      ! Default to format used for savetxt if fmt not specified.
       fmt_ = optval(fmt, "*")
-      ! Use list directed read if user has specified fmt='*'
+
       if ( fmt_ == '*' ) then
+        ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
-        ! Otherwise pass default user specified fmt string.
+        ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
-
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_iint64
     subroutine  loadtxt_csp(filename, d, skiprows, max_rows, fmt)
@@ -601,7 +727,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -621,24 +748,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
+      
       ! Default to format used for savetxt if fmt not specified.
-      fmt_ = optval(fmt, "(*"//FMT_COMPLEX_sp(1:len(FMT_COMPLEX_sp)-1)//",1x))")
+      fmt_ = optval(fmt, "(*"//FMT_COMPLEX_sp(1:len(FMT_COMPLEX_sp)-1)//",:,1x))")
+
       if ( fmt_ == '*' ) then
         ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
         ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_csp
     subroutine  loadtxt_cdp(filename, d, skiprows, max_rows, fmt)
@@ -680,7 +828,8 @@ contains
       !!     ...
       !!
       integer :: s
-      integer :: nrow, ncol, i, skiprows_, max_rows_
+      integer :: nrow, ncol, i, ios, skiprows_, max_rows_
+      character(len=1024) :: iomsg, msgout
 
       skiprows_ = max(optval(skiprows, 0), 0)
       max_rows_ = optval(max_rows, -1)
@@ -700,24 +849,45 @@ contains
       allocate(d(max_rows_, ncol))
 
       do i = 1, skiprows_
-        read(s, *)
+        read(s, *, iostat=ios, iomsg=iomsg)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if
+        
       end do
-
+      
       ! Default to format used for savetxt if fmt not specified.
-      fmt_ = optval(fmt, "(*"//FMT_COMPLEX_dp(1:len(FMT_COMPLEX_dp)-1)//",1x))")
+      fmt_ = optval(fmt, "(*"//FMT_COMPLEX_dp(1:len(FMT_COMPLEX_dp)-1)//",:,1x))")
+
       if ( fmt_ == '*' ) then
         ! Use list directed read if user has specified fmt='*'
         do i = 1, max_rows_
-          read (s,*) d(i, :)
+          read (s,*,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if          
+          
         enddo
       else
         ! Otherwise pass default or user specified fmt string.
         do i = 1, max_rows_
-          read (s,fmt_) d(i, :)
+          read (s,fmt_,iostat=ios,iomsg=iomsg) d(i, :)
+          
+          if (ios/=0) then 
+             write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+             call error_stop(msg=trim(msgout))
+          end if             
+          
         enddo
       endif
 
       close(s)
+      
+      1 format('loadtxt: error <',a,'> reading ',i0,' values from line ',i0,' of ',a,'.')
 
     end subroutine loadtxt_cdp
 
@@ -742,12 +912,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_REAL_sp(1:len(FMT_REAL_sp)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_REAL_sp(1:len(FMT_REAL_sp)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_rsp
     subroutine savetxt_rdp(filename, d)
       !! version: experimental
@@ -769,12 +950,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_REAL_dp(1:len(FMT_REAL_dp)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_REAL_dp(1:len(FMT_REAL_dp)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_rdp
     subroutine savetxt_iint8(filename, d)
       !! version: experimental
@@ -796,12 +988,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_iint8
     subroutine savetxt_iint16(filename, d)
       !! version: experimental
@@ -823,12 +1026,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_iint16
     subroutine savetxt_iint32(filename, d)
       !! version: experimental
@@ -850,12 +1064,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_iint32
     subroutine savetxt_iint64(filename, d)
       !! version: experimental
@@ -877,12 +1102,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_INT(1:len(FMT_INT)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_iint64
     subroutine savetxt_csp(filename, d)
       !! version: experimental
@@ -904,12 +1140,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_COMPLEX_sp(1:len(FMT_COMPLEX_sp)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_COMPLEX_sp(1:len(FMT_COMPLEX_sp)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_csp
     subroutine savetxt_cdp(filename, d)
       !! version: experimental
@@ -931,12 +1178,23 @@ contains
       !!```
       !!
 
-      integer :: s, i
+      integer :: s, i, ios
+      character(len=1024) :: iomsg, msgout
       s = open(filename, "w")
       do i = 1, size(d, 1)
-          write(s, "(*"//FMT_COMPLEX_dp(1:len(FMT_COMPLEX_dp)-1)//",1x))") d(i, :)
+          write(s, "(*"//FMT_COMPLEX_dp(1:len(FMT_COMPLEX_dp)-1)//",:,1x))", &
+                iostat=ios,iomsg=iomsg) d(i, :)
+        
+        if (ios/=0) then 
+           write(msgout,1) trim(iomsg),size(d,2),i,trim(filename) 
+           call error_stop(msg=trim(msgout))
+        end if           
+        
       end do
       close(s)
+      
+      1 format('savetxt: error <',a,'> writing ',i0,' values to line ',i0,' of ',a,'.')
+      
     end subroutine savetxt_cdp
 
 
