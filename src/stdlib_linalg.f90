@@ -41,6 +41,8 @@ module stdlib_linalg
   public :: cross_product
   public :: qr
   public :: qr_space
+  public :: schur
+  public :: schur_space
   public :: is_square
   public :: is_diagonal
   public :: is_symmetric
@@ -1606,6 +1608,214 @@ module stdlib_linalg
       end subroutine get_qr_z_workspace
   end interface qr_space
  
+  ! Schur decomposition of rank-2 array A
+  interface schur
+    !! version: experimental
+    !!
+    !! Computes the Schur decomposition of matrix \( A = Z T Z^H \).
+    !! ([Specification](../page/specs/stdlib_linalg.html#schur-compute-the-schur-decomposition-of-a-matrix))
+    !!
+    !!### Summary
+    !! Compute the Schur decomposition of a `real` or `complex` matrix: \( A = Z T Z^H \), where \( Z \) is
+    !! orthonormal/unitary and \( T \) is upper-triangular or quasi-upper-triangular. Matrix \( A \) has size `[m,m]`.
+    !!
+    !!### Description
+    !! 
+    !! This interface provides methods for computing the Schur decomposition of a matrix.
+    !! Supported data types include `real` and `complex`. If a pre-allocated workspace is provided, no internal 
+    !! memory allocations take place when using this interface.
+    !!
+    !! The output matrix \( T \) is upper-triangular for `complex` input matrices and quasi-upper-triangular
+    !! for `real` input matrices (with possible \( 2 \times 2 \) blocks on the diagonal).
+    !!
+    !!@note The solution is based on LAPACK's Schur decomposition routines (`*GEES`). 
+    !! 
+      module subroutine stdlib_linalg_s_schur(a, t, z, eigvals, overwrite_a, storage, err)
+         !> Input matrix a[m,m]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         real(sp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         real(sp), optional, intent(out), contiguous, target :: z(:,:)
+         !> [optional] Output eigenvalues that appear on the diagonal of T
+         complex(sp), optional, intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a                 
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space         
+         real(sp), optional, intent(inout), target :: storage(:)
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine stdlib_linalg_s_schur
+      
+      ! Schur decomposition subroutine: real eigenvalue interface
+      module subroutine stdlib_linalg_real_eig_s_schur(a,t,z,eigvals,overwrite_a,storage,err)
+         !> Input matrix a[m,m]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         real(sp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         real(sp), optional, intent(out), contiguous, target :: z(:,:)
+         !> Output real eigenvalues that appear on the diagonal of T
+         real(sp), intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space
+         real(sp), optional, intent(inout), target :: storage(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a        
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err        
+      end subroutine stdlib_linalg_real_eig_s_schur 
+      module subroutine stdlib_linalg_d_schur(a, t, z, eigvals, overwrite_a, storage, err)
+         !> Input matrix a[m,m]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         real(dp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         real(dp), optional, intent(out), contiguous, target :: z(:,:)
+         !> [optional] Output eigenvalues that appear on the diagonal of T
+         complex(dp), optional, intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a                 
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space         
+         real(dp), optional, intent(inout), target :: storage(:)
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine stdlib_linalg_d_schur
+      
+      ! Schur decomposition subroutine: real eigenvalue interface
+      module subroutine stdlib_linalg_real_eig_d_schur(a,t,z,eigvals,overwrite_a,storage,err)
+         !> Input matrix a[m,m]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         real(dp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         real(dp), optional, intent(out), contiguous, target :: z(:,:)
+         !> Output real eigenvalues that appear on the diagonal of T
+         real(dp), intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space
+         real(dp), optional, intent(inout), target :: storage(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a        
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err        
+      end subroutine stdlib_linalg_real_eig_d_schur 
+      module subroutine stdlib_linalg_c_schur(a, t, z, eigvals, overwrite_a, storage, err)
+         !> Input matrix a[m,m]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         complex(sp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         complex(sp), optional, intent(out), contiguous, target :: z(:,:)
+         !> [optional] Output eigenvalues that appear on the diagonal of T
+         complex(sp), optional, intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a                 
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space         
+         complex(sp), optional, intent(inout), target :: storage(:)
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine stdlib_linalg_c_schur
+      
+      ! Schur decomposition subroutine: real eigenvalue interface
+      module subroutine stdlib_linalg_real_eig_c_schur(a,t,z,eigvals,overwrite_a,storage,err)
+         !> Input matrix a[m,m]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         complex(sp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         complex(sp), optional, intent(out), contiguous, target :: z(:,:)
+         !> Output real eigenvalues that appear on the diagonal of T
+         real(sp), intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space
+         complex(sp), optional, intent(inout), target :: storage(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a        
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err        
+      end subroutine stdlib_linalg_real_eig_c_schur 
+      module subroutine stdlib_linalg_z_schur(a, t, z, eigvals, overwrite_a, storage, err)
+         !> Input matrix a[m,m]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         complex(dp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         complex(dp), optional, intent(out), contiguous, target :: z(:,:)
+         !> [optional] Output eigenvalues that appear on the diagonal of T
+         complex(dp), optional, intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a                 
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space         
+         complex(dp), optional, intent(inout), target :: storage(:)
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine stdlib_linalg_z_schur
+      
+      ! Schur decomposition subroutine: real eigenvalue interface
+      module subroutine stdlib_linalg_real_eig_z_schur(a,t,z,eigvals,overwrite_a,storage,err)
+         !> Input matrix a[m,m]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Schur form of A: upper-triangular or quasi-upper-triangular matrix T
+         complex(dp), intent(out), contiguous, target :: t(:,:)
+         !> Unitary/orthonormal transformation matrix Z
+         complex(dp), optional, intent(out), contiguous, target :: z(:,:)
+         !> Output real eigenvalues that appear on the diagonal of T
+         real(dp), intent(out), contiguous, target :: eigvals(:)
+         !> [optional] Provide pre-allocated workspace, size to be checked with schur_space
+         complex(dp), optional, intent(inout), target :: storage(:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a        
+         !> [optional] State return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err        
+      end subroutine stdlib_linalg_real_eig_z_schur 
+  end interface schur
+
+  ! Return the working array space required by the Schur decomposition solver
+  interface schur_space
+    !! version: experimental
+    !!
+    !! Computes the working array space required by the Schur decomposition solver
+    !! ([Specification](../page/specs/stdlib_linalg.html#schur-space-compute-internal-working-space-requirements-for-the-schur-decomposition))
+    !!
+    !!### Description
+    !! 
+    !! This interface returns the size of the `real` or `complex` working storage required by the 
+    !! Schur decomposition solver. The working size only depends on the kind (`real` or `complex`) and size of
+    !! the matrix being decomposed. Storage size can be used to pre-allocate a working array in case several 
+    !! repeated Schur decompositions of same-size matrices are sought. If pre-allocated working arrays 
+    !! are provided, no internal allocations will take place during the decomposition.
+    !!     
+      module subroutine get_schur_s_workspace(a,lwork,err)
+         !> Input matrix a[m,m]
+         real(sp), intent(in), target :: a(:,:)
+         !> Minimum workspace size for the decomposition operation
+         integer(ilp), intent(out) :: lwork
+         !> State return flag. Returns an error if the query failed
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine get_schur_s_workspace
+      module subroutine get_schur_d_workspace(a,lwork,err)
+         !> Input matrix a[m,m]
+         real(dp), intent(in), target :: a(:,:)
+         !> Minimum workspace size for the decomposition operation
+         integer(ilp), intent(out) :: lwork
+         !> State return flag. Returns an error if the query failed
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine get_schur_d_workspace
+      module subroutine get_schur_c_workspace(a,lwork,err)
+         !> Input matrix a[m,m]
+         complex(sp), intent(in), target :: a(:,:)
+         !> Minimum workspace size for the decomposition operation
+         integer(ilp), intent(out) :: lwork
+         !> State return flag. Returns an error if the query failed
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine get_schur_c_workspace
+      module subroutine get_schur_z_workspace(a,lwork,err)
+         !> Input matrix a[m,m]
+         complex(dp), intent(in), target :: a(:,:)
+         !> Minimum workspace size for the decomposition operation
+         integer(ilp), intent(out) :: lwork
+         !> State return flag. Returns an error if the query failed
+         type(linalg_state_type), optional, intent(out) :: err
+      end subroutine get_schur_z_workspace
+  end interface schur_space
 
   interface det
     !! version: experimental 
@@ -2173,7 +2383,8 @@ module stdlib_linalg
      !!@note The solution is based on LAPACK's general eigenproblem solvers `*GEEV`.
      !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
      !!       
-    module subroutine stdlib_linalg_eig_s(a,lambda,right,left,overwrite_a,err)
+    module subroutine stdlib_linalg_eig_standard_s(a,lambda,right,left, &
+                                                      overwrite_a,err)
      !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
      !! and optionally right or left eigenvectors.        
          !> Input matrix A[m,n]
@@ -2188,56 +2399,10 @@ module stdlib_linalg
          logical(lk), optional, intent(in) :: overwrite_a
          !> [optional] state return flag. On error if not requested, the code will stop
          type(linalg_state_type), optional, intent(out) :: err
-    end subroutine stdlib_linalg_eig_s
-    module subroutine stdlib_linalg_eig_d(a,lambda,right,left,overwrite_a,err)
-     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
-     !! and optionally right or left eigenvectors.        
-         !> Input matrix A[m,n]
-         real(dp), intent(inout), target :: a(:,:)
-         !> Array of eigenvalues
-         complex(dp), intent(out) :: lambda(:)
-         !> The columns of RIGHT contain the right eigenvectors of A
-         complex(dp), optional, intent(out), target :: right(:,:)
-         !> The columns of LEFT contain the left eigenvectors of A
-         complex(dp), optional, intent(out), target :: left(:,:)
-         !> [optional] Can A data be overwritten and destroyed?
-         logical(lk), optional, intent(in) :: overwrite_a
-         !> [optional] state return flag. On error if not requested, the code will stop
-         type(linalg_state_type), optional, intent(out) :: err
-    end subroutine stdlib_linalg_eig_d
-    module subroutine stdlib_linalg_eig_c(a,lambda,right,left,overwrite_a,err)
-     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
-     !! and optionally right or left eigenvectors.        
-         !> Input matrix A[m,n]
-         complex(sp), intent(inout), target :: a(:,:)
-         !> Array of eigenvalues
-         complex(sp), intent(out) :: lambda(:)
-         !> The columns of RIGHT contain the right eigenvectors of A
-         complex(sp), optional, intent(out), target :: right(:,:)
-         !> The columns of LEFT contain the left eigenvectors of A
-         complex(sp), optional, intent(out), target :: left(:,:)
-         !> [optional] Can A data be overwritten and destroyed?
-         logical(lk), optional, intent(in) :: overwrite_a
-         !> [optional] state return flag. On error if not requested, the code will stop
-         type(linalg_state_type), optional, intent(out) :: err
-    end subroutine stdlib_linalg_eig_c
-    module subroutine stdlib_linalg_eig_z(a,lambda,right,left,overwrite_a,err)
-     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
-     !! and optionally right or left eigenvectors.        
-         !> Input matrix A[m,n]
-         complex(dp), intent(inout), target :: a(:,:)
-         !> Array of eigenvalues
-         complex(dp), intent(out) :: lambda(:)
-         !> The columns of RIGHT contain the right eigenvectors of A
-         complex(dp), optional, intent(out), target :: right(:,:)
-         !> The columns of LEFT contain the left eigenvectors of A
-         complex(dp), optional, intent(out), target :: left(:,:)
-         !> [optional] Can A data be overwritten and destroyed?
-         logical(lk), optional, intent(in) :: overwrite_a
-         !> [optional] state return flag. On error if not requested, the code will stop
-         type(linalg_state_type), optional, intent(out) :: err
-    end subroutine stdlib_linalg_eig_z
-    module subroutine stdlib_linalg_real_eig_s(a,lambda,right,left,overwrite_a,err)
+    end subroutine stdlib_linalg_eig_standard_s
+
+    module subroutine stdlib_linalg_real_eig_standard_s(a,lambda,right,left, &
+                                                           overwrite_a,err)
      !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
      !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
      !! non-trivial imaginary parts.
@@ -2253,8 +2418,71 @@ module stdlib_linalg
          logical(lk), optional, intent(in) :: overwrite_a
          !> [optional] state return flag. On error if not requested, the code will stop
          type(linalg_state_type), optional, intent(out) :: err
-    end subroutine stdlib_linalg_real_eig_s
-    module subroutine stdlib_linalg_real_eig_d(a,lambda,right,left,overwrite_a,err)
+    end subroutine stdlib_linalg_real_eig_standard_s
+    module subroutine stdlib_linalg_eig_generalized_s(a,b,lambda,right,left, &
+                                                      overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         real(sp), intent(inout), target :: b(:,:)
+         !> Array of eigenvalues
+         complex(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_generalized_s
+
+    module subroutine stdlib_linalg_real_eig_generalized_s(a,b,lambda,right,left, &
+                                                           overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         real(sp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         real(sp), intent(inout), target :: b(:,:)  
+         !> Array of real eigenvalues
+         real(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_generalized_s
+    module subroutine stdlib_linalg_eig_standard_d(a,lambda,right,left, &
+                                                      overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_standard_d
+
+    module subroutine stdlib_linalg_real_eig_standard_d(a,lambda,right,left, &
+                                                           overwrite_a,err)
      !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
      !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
      !! non-trivial imaginary parts.
@@ -2270,7 +2498,211 @@ module stdlib_linalg
          logical(lk), optional, intent(in) :: overwrite_a
          !> [optional] state return flag. On error if not requested, the code will stop
          type(linalg_state_type), optional, intent(out) :: err
-    end subroutine stdlib_linalg_real_eig_d
+    end subroutine stdlib_linalg_real_eig_standard_d
+    module subroutine stdlib_linalg_eig_generalized_d(a,b,lambda,right,left, &
+                                                      overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         real(dp), intent(inout), target :: b(:,:)
+         !> Array of eigenvalues
+         complex(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_generalized_d
+
+    module subroutine stdlib_linalg_real_eig_generalized_d(a,b,lambda,right,left, &
+                                                           overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         real(dp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         real(dp), intent(inout), target :: b(:,:)  
+         !> Array of real eigenvalues
+         real(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_generalized_d
+    module subroutine stdlib_linalg_eig_standard_c(a,lambda,right,left, &
+                                                      overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_standard_c
+
+    module subroutine stdlib_linalg_real_eig_standard_c(a,lambda,right,left, &
+                                                           overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Array of real eigenvalues
+         real(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_standard_c
+    module subroutine stdlib_linalg_eig_generalized_c(a,b,lambda,right,left, &
+                                                      overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         complex(sp), intent(inout), target :: b(:,:)
+         !> Array of eigenvalues
+         complex(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_generalized_c
+
+    module subroutine stdlib_linalg_real_eig_generalized_c(a,b,lambda,right,left, &
+                                                           overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         complex(sp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         complex(sp), intent(inout), target :: b(:,:)  
+         !> Array of real eigenvalues
+         real(sp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(sp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(sp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_generalized_c
+    module subroutine stdlib_linalg_eig_standard_z(a,lambda,right,left, &
+                                                      overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Array of eigenvalues
+         complex(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_standard_z
+
+    module subroutine stdlib_linalg_real_eig_standard_z(a,lambda,right,left, &
+                                                           overwrite_a,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Array of real eigenvalues
+         real(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_standard_z
+    module subroutine stdlib_linalg_eig_generalized_z(a,b,lambda,right,left, &
+                                                      overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of eigenvalues, 
+     !! and optionally right or left eigenvectors.        
+         !> Input matrix A[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         complex(dp), intent(inout), target :: b(:,:)
+         !> Array of eigenvalues
+         complex(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_eig_generalized_z
+
+    module subroutine stdlib_linalg_real_eig_generalized_z(a,b,lambda,right,left, &
+                                                           overwrite_a,overwrite_b,err)
+     !! Eigendecomposition of matrix A returning an array `lambda` of real eigenvalues, 
+     !! and optionally right or left eigenvectors. Returns an error if the eigenvalues had
+     !! non-trivial imaginary parts.
+         !> Input matrix A[m,n]
+         complex(dp), intent(inout), target :: a(:,:)
+         !> Generalized problem matrix B[n,n]
+         complex(dp), intent(inout), target :: b(:,:)  
+         !> Array of real eigenvalues
+         real(dp), intent(out) :: lambda(:)
+         !> The columns of RIGHT contain the right eigenvectors of A
+         complex(dp), optional, intent(out), target :: right(:,:)
+         !> The columns of LEFT contain the left eigenvectors of A
+         complex(dp), optional, intent(out), target :: left(:,:)
+         !> [optional] Can A data be overwritten and destroyed?
+         logical(lk), optional, intent(in) :: overwrite_a
+         !> [optional] Can B data be overwritten and destroyed? (default: no)
+         logical(lk), optional, intent(in) :: overwrite_b
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), optional, intent(out) :: err
+    end subroutine stdlib_linalg_real_eig_generalized_z
   end interface eig
 
   ! Eigenvalues of a square matrix
@@ -2293,74 +2725,158 @@ module stdlib_linalg
      !!@note The solution is based on LAPACK's general eigenproblem solvers `*GEEV`.
      !!@note BLAS/LAPACK backends do not currently support extended precision (``xdp``).
      !!       
-    module function stdlib_linalg_eigvals_s(a,err) result(lambda)
+    module function stdlib_linalg_eigvals_standard_s(a,err) result(lambda)
      !! Return an array of eigenvalues of matrix A.
          !> Input matrix A[m,n]
-         real(sp), intent(in), target :: a(:,:)
+         real(sp), intent(in), dimension(:,:), target :: a 
          !> [optional] state return flag. On error if not requested, the code will stop
          type(linalg_state_type), intent(out) :: err
          !> Array of singular values
          complex(sp), allocatable :: lambda(:)        
-    end function stdlib_linalg_eigvals_s
+    end function stdlib_linalg_eigvals_standard_s
     
-    module function stdlib_linalg_eigvals_noerr_s(a) result(lambda)
+    module function stdlib_linalg_eigvals_noerr_standard_s(a) result(lambda)
      !! Return an array of eigenvalues of matrix A.
          !> Input matrix A[m,n]
-         real(sp), intent(in), target :: a(:,:)
+         real(sp), intent(in), dimension(:,:), target :: a 
          !> Array of singular values
          complex(sp), allocatable :: lambda(:)
-    end function stdlib_linalg_eigvals_noerr_s
-    module function stdlib_linalg_eigvals_d(a,err) result(lambda)
+    end function stdlib_linalg_eigvals_noerr_standard_s
+    module function stdlib_linalg_eigvals_generalized_s(a,b,err) result(lambda)
      !! Return an array of eigenvalues of matrix A.
          !> Input matrix A[m,n]
-         real(dp), intent(in), target :: a(:,:)
-         !> [optional] state return flag. On error if not requested, the code will stop
-         type(linalg_state_type), intent(out) :: err
-         !> Array of singular values
-         complex(dp), allocatable :: lambda(:)        
-    end function stdlib_linalg_eigvals_d
-    
-    module function stdlib_linalg_eigvals_noerr_d(a) result(lambda)
-     !! Return an array of eigenvalues of matrix A.
-         !> Input matrix A[m,n]
-         real(dp), intent(in), target :: a(:,:)
-         !> Array of singular values
-         complex(dp), allocatable :: lambda(:)
-    end function stdlib_linalg_eigvals_noerr_d
-    module function stdlib_linalg_eigvals_c(a,err) result(lambda)
-     !! Return an array of eigenvalues of matrix A.
-         !> Input matrix A[m,n]
-         complex(sp), intent(in), target :: a(:,:)
+         real(sp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         real(sp), intent(inout), dimension(:,:), target :: b         
          !> [optional] state return flag. On error if not requested, the code will stop
          type(linalg_state_type), intent(out) :: err
          !> Array of singular values
          complex(sp), allocatable :: lambda(:)        
-    end function stdlib_linalg_eigvals_c
+    end function stdlib_linalg_eigvals_generalized_s
     
-    module function stdlib_linalg_eigvals_noerr_c(a) result(lambda)
+    module function stdlib_linalg_eigvals_noerr_generalized_s(a,b) result(lambda)
      !! Return an array of eigenvalues of matrix A.
          !> Input matrix A[m,n]
-         complex(sp), intent(in), target :: a(:,:)
+         real(sp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         real(sp), intent(inout), dimension(:,:), target :: b         
          !> Array of singular values
          complex(sp), allocatable :: lambda(:)
-    end function stdlib_linalg_eigvals_noerr_c
-    module function stdlib_linalg_eigvals_z(a,err) result(lambda)
+    end function stdlib_linalg_eigvals_noerr_generalized_s
+    module function stdlib_linalg_eigvals_standard_d(a,err) result(lambda)
      !! Return an array of eigenvalues of matrix A.
          !> Input matrix A[m,n]
-         complex(dp), intent(in), target :: a(:,:)
+         real(dp), intent(in), dimension(:,:), target :: a 
          !> [optional] state return flag. On error if not requested, the code will stop
          type(linalg_state_type), intent(out) :: err
          !> Array of singular values
          complex(dp), allocatable :: lambda(:)        
-    end function stdlib_linalg_eigvals_z
+    end function stdlib_linalg_eigvals_standard_d
     
-    module function stdlib_linalg_eigvals_noerr_z(a) result(lambda)
+    module function stdlib_linalg_eigvals_noerr_standard_d(a) result(lambda)
      !! Return an array of eigenvalues of matrix A.
          !> Input matrix A[m,n]
-         complex(dp), intent(in), target :: a(:,:)
+         real(dp), intent(in), dimension(:,:), target :: a 
          !> Array of singular values
          complex(dp), allocatable :: lambda(:)
-    end function stdlib_linalg_eigvals_noerr_z
+    end function stdlib_linalg_eigvals_noerr_standard_d
+    module function stdlib_linalg_eigvals_generalized_d(a,b,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         real(dp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         real(dp), intent(inout), dimension(:,:), target :: b         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_generalized_d
+    
+    module function stdlib_linalg_eigvals_noerr_generalized_d(a,b) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         real(dp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         real(dp), intent(inout), dimension(:,:), target :: b         
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_generalized_d
+    module function stdlib_linalg_eigvals_standard_c(a,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), dimension(:,:), target :: a 
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_standard_c
+    
+    module function stdlib_linalg_eigvals_noerr_standard_c(a) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), dimension(:,:), target :: a 
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_standard_c
+    module function stdlib_linalg_eigvals_generalized_c(a,b,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         complex(sp), intent(inout), dimension(:,:), target :: b         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_generalized_c
+    
+    module function stdlib_linalg_eigvals_noerr_generalized_c(a,b) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(sp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         complex(sp), intent(inout), dimension(:,:), target :: b         
+         !> Array of singular values
+         complex(sp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_generalized_c
+    module function stdlib_linalg_eigvals_standard_z(a,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), dimension(:,:), target :: a 
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_standard_z
+    
+    module function stdlib_linalg_eigvals_noerr_standard_z(a) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), dimension(:,:), target :: a 
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_standard_z
+    module function stdlib_linalg_eigvals_generalized_z(a,b,err) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         complex(dp), intent(inout), dimension(:,:), target :: b         
+         !> [optional] state return flag. On error if not requested, the code will stop
+         type(linalg_state_type), intent(out) :: err
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)        
+    end function stdlib_linalg_eigvals_generalized_z
+    
+    module function stdlib_linalg_eigvals_noerr_generalized_z(a,b) result(lambda)
+     !! Return an array of eigenvalues of matrix A.
+         !> Input matrix A[m,n]
+         complex(dp), intent(in), dimension(:,:), target :: a 
+         !> Generalized problem matrix B[n,n]
+         complex(dp), intent(inout), dimension(:,:), target :: b         
+         !> Array of singular values
+         complex(dp), allocatable :: lambda(:)
+    end function stdlib_linalg_eigvals_noerr_generalized_z
   end interface eigvals
      
   ! Eigendecomposition of a real symmetric or complex hermitian matrix
