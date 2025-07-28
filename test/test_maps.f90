@@ -1,1031 +1,464 @@
-module test_stdlib_chaining_maps
-!! Test various aspects of the runtime system.
-!! Running this program may require increasing the stack size to above 48 MBytes
-!! or decreasing rand_power to 20 or less
-    use testdrive, only : new_unittest, unittest_type, error_type, check
-    use :: stdlib_kinds, only : dp, int8, int32
-    use stdlib_hashmaps, only : chaining_hashmap_type, int_depth, int_index
-    use stdlib_hashmap_wrappers
-
-    implicit none
-    private
-
-    type dummy_type
-        integer(int8), allocatable :: value(:)
-    end type dummy_type
-
-    integer(int32), parameter :: huge32 = huge(0_int32)
-    real(dp), parameter       :: hugep1 = real(huge32, dp) + 1.0_dp
-    integer, parameter        :: rand_power = 18
-    integer, parameter        :: rand_size = 2**rand_power
-    integer, parameter        :: test_size = rand_size*4
-    integer, parameter        :: test_16 = 2**4
-    integer, parameter        :: test_256 = 2**8
-    ! key_type = 5 to support int8 and int32 key types tested.  Can be 
-    ! increased to generate additional unique int8 vectors additional key types.   
-    integer, parameter        :: key_types = 5
-    character(len=16)         :: char_size 
-    public :: collect_stdlib_chaining_maps
-
-
-contains
-
-    !> Collect all exported unit tests
-    subroutine collect_stdlib_chaining_maps(testsuite)
-        !> Collection of tests
-        type(unittest_type), allocatable, intent(out) :: testsuite(:)
-
-        testsuite = [ &
-            new_unittest("chaining-maps-fnv_1_hasher-16-byte-words", test_fnv_1_hasher_16_byte_words) &
-                , new_unittest("chaining-maps-fnv_1_hasher-16-byte-words", test_fnv_1_hasher_16_byte_words) &
-                , new_unittest("chaining-maps-fnv_1_hasher-256-byte-words", test_fnv_1_hasher_256_byte_words) &
-                , new_unittest("chaining-maps-fnv_1a_hasher-16-byte-words", test_fnv_1a_hasher_16_byte_words) &
-                , new_unittest("chaining-maps-fnv_1a_hasher-256-byte-words", test_fnv_1a_hasher_256_byte_words) &
-                , new_unittest("chaining-maps-seeded_nmhash32_hasher-16-byte-words", test_seeded_nmhash32_hasher_16_byte_words) &
-                , new_unittest("chaining-maps-seeded_nmhash32_hasher-256-byte-words", test_seeded_nmhash32_hasher_256_byte_words) &
-                , new_unittest("chaining-maps-seeded_nmhash32x_hasher-16-byte-words", test_seeded_nmhash32x_hasher_16_byte_words) &
-                , new_unittest("chaining-maps-seeded_nmhash32x_hasher-256-byte-words", test_seeded_nmhash32x_hasher_256_byte_words)&
-                    & &
-                , new_unittest("chaining-maps-seeded_water_hasher-16-byte-words", test_seeded_water_hasher_16_byte_words) &
-                , new_unittest("chaining-maps-seeded_water_hasher-256-byte-words", test_seeded_water_hasher_256_byte_words) &
-            , new_unittest("chaining-maps-removal-spec", test_removal_spec) &
-            ]
-
-    end subroutine collect_stdlib_chaining_maps
-
-        subroutine test_fnv_1_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( fnv_1_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_fnv_1_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( fnv_1_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_fnv_1a_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( fnv_1a_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_fnv_1a_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( fnv_1a_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( seeded_nmhash32_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( seeded_nmhash32_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32x_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( seeded_nmhash32x_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32x_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( seeded_nmhash32x_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_water_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( seeded_water_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_water_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(chaining_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-            call map % init( seeded_water_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-
-
-    subroutine generate_vector(test_8_bits)
-        integer(int8), intent(out) :: test_8_bits(test_size, key_types)
-
-        integer                   :: index, key_type
-        real(dp)                  :: rand2(2)
-        integer(int32)            :: rand_object(rand_size)
-
-        ! Generate a unique int8 vector for each key type tested to avoid
-        ! dupilcate keys and mapping conflicts.   
-        do key_type = 1, key_types        
-            do index=1, rand_size
-                call random_number(rand2)
-                if (rand2(1) < 0.5_dp) then
-                    rand_object(index) = ceiling(-rand2(2)*hugep1, int32) - 1
-                else
-                    rand_object(index) = floor(rand2(2)*hugep1, int32)
-                end if
-            end do
-
-            test_8_bits(:,key_type) = transfer( rand_object, 0_int8, test_size )
-        end do
-
-    end subroutine
-
-    subroutine test_input_random_data(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(chaining_hashmap_type), intent(inout) :: map
-        integer(int8), intent(in) :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in) :: test_block
-        type(dummy_type) :: dummy_val
-        integer :: index2
-        type(key_type) :: key
+module test_hashmaps
+  use stdlib_hashmaps, only: hashmap_type, chaining_hashmap_type, open_hashmap_type
+  use stdlib_hashmap_wrappers, only: set, key_type, hasher_fun, fnv_1_hasher, fnv_1a_hasher, &
+      seeded_nmhash32_hasher, seeded_nmhash32x_hasher, seeded_water_hasher
+  use stdlib_kinds, only: int8
+  use testdrive, only: new_unittest, unittest_type, error_type, check, test_failed
+ 
+  implicit none
+  
+  contains
     
-        logical :: conflict
-
-        do index2=1, test_size, test_block
-                       
-            ! Test base int8 key interface
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % map_entry( key, dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map int8 entry because of a key conflict.")
-            
-            ! Test int32 key interface
-            ! Use transfer to create int32 vector from generated int8 vector.  
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % map_entry( key, dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map chaining int32 entry because of a key conflict.")
-
-            ! Test int8 key generic interface
-            call map % map_entry( test_8_bits( index2:index2+test_block-1, 3 ), dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map chaining int8 generic interface")
-
-            ! Test int32 key generic interface
-            call map % map_entry( transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map chaining int32 generic interface")
-
-            ! Test char key generic interface
-            call map % map_entry( transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map chaining character generic interface")
-
-            if (allocated(error)) return
-        end do
-
-    end subroutine
-
-    subroutine test_inquire_data(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(chaining_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in)          :: test_block
-        integer :: index2
-        logical :: present
-        type(key_type) :: key
-
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % key_test( key, present )
-            call check(error, present, "Int8 KEY not found in map KEY_TEST.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % key_test( key, present )
-            call check(error, present, "Int32 KEY not found in map KEY_TEST.")
-
-            call map % key_test( test_8_bits( index2:index2+test_block-1, 3 ), present )
-            call check(error, present, "Int8 KEY generic interface not found in map KEY_TEST.")
-
-            call map % key_test( transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), present )
-            call check(error, present, "Int32 KEY generic interface not found in map KEY_TEST.")
-
-            call map % key_test( transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), present )
-            call check(error, present, "Char KEY generic interface not found in map KEY_TEST.")
-
-            if (allocated(error)) return
-        end do
-
-    end subroutine
-
-    subroutine test_get_data(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(chaining_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in)          :: test_block
-        integer :: index2
-        type(key_type) :: key
-        class(*), allocatable :: data
-        logical :: exists
-
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % get_other_data( key, data, exists )
-            call check(error, exists, "Unable to get data because int8 key not found in map.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % get_other_data( key, data, exists )
-            call check(error, exists, "Unable to get data because int32 key not found in map.")
-
-            call map % get_other_data( test_8_bits( index2:index2+test_block-1, 3 ), data, exists )
-            call check(error, exists, "Unable to get data because int8 generic interface key not found in map.")
-
-            call map % get_other_data( transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ) , data, exists )
-            call check(error, exists, "Unable to get data because int32 generic interface key not found in map.")
-
-            call map % get_other_data( transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ) , data, exists )
-            call check(error, exists, "Unable to get data because character generic interface key not found in map.")
-        end do
-
-    end subroutine
-
-    subroutine test_removal(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(chaining_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in)          :: test_block
-        type(key_type) :: key
-        integer(int_index) :: index2
-        logical :: existed
-
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % remove(key, existed)
-            call check(error, existed,  "Int8 Key not found in entry removal.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % remove(key, existed)
-            call check(error, existed,  "Int32 Key not found in entry removal.")
-
-            call map % remove(test_8_bits( index2:index2+test_block-1, 3 ), existed)
-            call check(error, existed,  "Int8 Key generic interface not found in entry removal.")
-
-            call map % remove(transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), existed)
-            call check(error, existed,  "Int32 Key generic interface not found in entry removal.")
-
-            call map % remove(transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), existed)
-            call check(error, existed,  "Character Key generic interface not found in entry removal.")
-        end do
-
-    end subroutine
-
-    subroutine test_removal_spec(error)
-        !! Test following code provided by @jannisteunissen
-        !! https://github.com/fortran-lang/stdlib/issues/785
-        type(error_type), allocatable, intent(out) :: error
-
-        type(chaining_hashmap_type) :: map
-        type(key_type) :: key
-        integer, parameter :: n_max = 500
-        integer :: n
-        integer, allocatable :: key_counts(:)
-        integer, allocatable :: seed(:)
-        integer(int8) :: int32_int8(4)
-        integer(int32) :: keys(n_max)
-        real(dp) :: r_uniform(n_max)
-        logical :: existed, present
-
-        call random_seed(size = n)
-        allocate(seed(n), source = 123456)
-        call random_seed(put = seed)
-
-        call random_number(r_uniform)
-        keys = nint(r_uniform * n_max * 0.25_dp)
-
-        call map%init(fnv_1_hasher, slots_bits=10)
-
-        do n = 1, n_max
-            call set(key, transfer(keys(n), int32_int8))
-            call map%key_test(key, present)
-            if (present) then
-                call map%remove(key, existed)
-                call check(error, existed, "chaining-removal-spec: Key not found in entry removal.")
-                return
-            else
-                call map%map_entry(key)
-            end if
-        end do
-
-        ! Count number of keys that occur an odd number of times
-        allocate(key_counts(minval(keys):maxval(keys)), source = 0)
-        do n = 1, n_max
-            key_counts(keys(n)) = key_counts(keys(n)) + 1
-        end do
-        n = sum(iand(key_counts, 1))
-
-        call check(error, map%entries(), n, & 
-                   "chaining-removal-spec: Number of expected keys and entries are different.")
-        return
-
-    end subroutine
-
-end module
-
-module test_stdlib_open_maps
-!! Test various aspects of the runtime system.
-!! Running this program may require increasing the stack size to above 48 MBytes
-!! or decreasing rand_power to 20 or less
-    use testdrive, only : new_unittest, unittest_type, error_type, check
-    use :: stdlib_kinds, only : dp, int8, int32
-    use stdlib_hashmaps, only : open_hashmap_type, int_depth, int_index
-    use stdlib_hashmap_wrappers
-
-    implicit none
-    private
-
-    type dummy_type
-        integer(int8), allocatable :: value(:)
-    end type dummy_type
-
-    integer(int32), parameter :: huge32 = huge(0_int32)
-    real(dp), parameter       :: hugep1 = real(huge32, dp) + 1.0_dp
-    integer, parameter        :: rand_power = 18
-    integer, parameter        :: rand_size = 2**rand_power
-    integer, parameter        :: test_size = rand_size*4
-    integer, parameter        :: test_16 = 2**4
-    integer, parameter        :: test_256 = 2**8
-    ! key_type = 5 to support int8 and int32 key types tested.  Can be 
-    ! increased to generate additional unique int8 vectors additional key types.  
-    integer, parameter        :: key_types = 5
-    character(len=16)         :: char_size
-
-    public :: collect_stdlib_open_maps
-
-contains
-
-    !> Collect all exported unit tests
-    subroutine collect_stdlib_open_maps(testsuite)
-        !> Collection of tests
-        type(unittest_type), allocatable, intent(out) :: testsuite(:)
-
-        testsuite = [ &
-            new_unittest("open-maps-fnv_1_hasher-16-byte-words", test_fnv_1_hasher_16_byte_words) &
-                , new_unittest("open-maps-fnv_1_hasher-16-byte-words", test_fnv_1_hasher_16_byte_words) &
-                , new_unittest("open-maps-fnv_1_hasher-256-byte-words", test_fnv_1_hasher_256_byte_words) &
-                , new_unittest("open-maps-fnv_1a_hasher-16-byte-words", test_fnv_1a_hasher_16_byte_words) &
-                , new_unittest("open-maps-fnv_1a_hasher-256-byte-words", test_fnv_1a_hasher_256_byte_words) &
-                , new_unittest("open-maps-seeded_nmhash32_hasher-16-byte-words", test_seeded_nmhash32_hasher_16_byte_words) &
-                , new_unittest("open-maps-seeded_nmhash32_hasher-256-byte-words", test_seeded_nmhash32_hasher_256_byte_words) &
-                , new_unittest("open-maps-seeded_nmhash32x_hasher-16-byte-words", test_seeded_nmhash32x_hasher_16_byte_words) &
-                , new_unittest("open-maps-seeded_nmhash32x_hasher-256-byte-words", test_seeded_nmhash32x_hasher_256_byte_words) &
-                , new_unittest("open-maps-seeded_water_hasher-16-byte-words", test_seeded_water_hasher_16_byte_words) &
-                , new_unittest("open-maps-seeded_water_hasher-256-byte-words", test_seeded_water_hasher_256_byte_words) &
-            , new_unittest("open-maps-removal-spec", test_removal_spec) &
-            ]
-
-    end subroutine collect_stdlib_open_maps
-
-        subroutine test_fnv_1_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( fnv_1_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_fnv_1_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( fnv_1_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_fnv_1a_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( fnv_1a_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_fnv_1a_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( fnv_1a_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( seeded_nmhash32_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( seeded_nmhash32_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32x_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( seeded_nmhash32x_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_nmhash32x_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( seeded_nmhash32x_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_water_hasher_16_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( seeded_water_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_16)
-            if (allocated(error)) return
-
-        end subroutine
-        subroutine test_seeded_water_hasher_256_byte_words(error)
-            !> Error handling
-            type(error_type), allocatable, intent(out) :: error
-
-            type(open_hashmap_type)   :: map
-            integer(int8)             :: test_8_bits(test_size,key_types)
-
-            call generate_vector(test_8_bits)
-
-            call map % init( seeded_water_hasher, slots_bits=10 )
-
-            call test_input_random_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_inquire_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_get_data(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-            call test_removal(error, map, test_8_bits, test_256)
-            if (allocated(error)) return
-
-        end subroutine
-
-
-    subroutine generate_vector(test_8_bits)
-        integer(int8), intent(out) :: test_8_bits(test_size, key_types)
-
-        integer                   :: index, key_type
-        real(dp)                  :: rand2(2)
-        integer(int32)            :: rand_object(rand_size)
+  ! Top level test drive collector
+  subroutine collect_hashmap_tests(testsuite)
+    type(unittest_type), allocatable, intent(out) :: testsuite(:)
+    testsuite = [ &
+      new_unittest("default_chaining", test_default_chaining), &
+      new_unittest("chaining_fnv1", test_chaining_fnv1), &
+      new_unittest("chaining_fnv1a", test_chaining_fnv1a), &
+      new_unittest("chaining_snm32", test_chaining_snm32), &
+      new_unittest("chaining_snm32x", test_chaining_snm32x), &
+      new_unittest("chaining_swh", test_chaining_swh), &
+      new_unittest("default_open", test_default_open), &
+      new_unittest("open_fnv1", test_open_fnv1), &
+      new_unittest("open_fnv1a", test_open_fnv1a), &
+      new_unittest("open_snm32", test_open_snm32), &
+      new_unittest("open_snm32x", test_open_snm32x), &
+      new_unittest("open_swh", test_open_swh) &
+    ]
+  end subroutine collect_hashmap_tests
+  
+  !!! Driver routines for the test configs. 
+  ! Chaining map tests
+  subroutine test_default_chaining(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(chaining_hashmap_type) :: chain_map
+    call run_hashmap_tests(error, chain_map, "default_chaining")
+  end subroutine test_default_chaining
+  
+  subroutine test_chaining_fnv1(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(chaining_hashmap_type) :: chain_map
+    call run_hashmap_tests(error, chain_map, "chaining_fnv1", fnv_1_hasher)
+  end subroutine test_chaining_fnv1
+  
+  subroutine test_chaining_fnv1a(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(chaining_hashmap_type) :: chain_map
+    call run_hashmap_tests(error, chain_map, "chaining_fnv1a", fnv_1a_hasher)
+  end subroutine test_chaining_fnv1a
+    
+  subroutine test_chaining_snm32(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(chaining_hashmap_type) :: chain_map
+    call run_hashmap_tests(error, chain_map, "chaining_snm32", seeded_nmhash32_hasher)
+  end subroutine test_chaining_snm32
+      
+  subroutine test_chaining_snm32x(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(chaining_hashmap_type) :: chain_map
+    call run_hashmap_tests(error, chain_map, "chaining_snm32x", seeded_nmhash32x_hasher)
+  end subroutine test_chaining_snm32x
         
-        ! Generate a unique int8 vector for each key type tested to avoid
-        ! dupilcate keys and mapping conflicts. 
-        do key_type = 1, key_types
-            do index=1, rand_size
-                call random_number(rand2)
-                if (rand2(1) < 0.5_dp) then
-                    rand_object(index) = ceiling(-rand2(2)*hugep1, int32) - 1
-                else
-                    rand_object(index) = floor(rand2(2)*hugep1, int32)
-                end if
-            end do
+  subroutine test_chaining_swh(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(chaining_hashmap_type) :: chain_map
+    call run_hashmap_tests(error, chain_map, "chaining_swh", seeded_water_hasher)
+  end subroutine test_chaining_swh
+  
+  ! Open map tests
+  subroutine test_default_open(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(open_hashmap_type) :: open_map
+    call run_hashmap_tests(error, open_map, "default_open" )
+  end subroutine test_default_open
+  
+  subroutine test_open_fnv1(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(open_hashmap_type) :: open_map
+    call run_hashmap_tests(error, open_map, "open_fnv1", fnv_1_hasher)
+  end subroutine test_open_fnv1
+  
+  subroutine test_open_fnv1a(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(open_hashmap_type) :: open_map
+    call run_hashmap_tests(error, open_map, "open_fnv1a", fnv_1a_hasher)
+  end subroutine test_open_fnv1a
+    
+  subroutine test_open_snm32(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(open_hashmap_type) :: open_map
+    call run_hashmap_tests(error, open_map, "open_snm32", seeded_nmhash32_hasher)
+  end subroutine test_open_snm32
+      
+  subroutine test_open_snm32x(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(open_hashmap_type) :: open_map
+    call run_hashmap_tests(error, open_map, "open_snm32x", seeded_nmhash32x_hasher)
+  end subroutine test_open_snm32x
+        
+  subroutine test_open_swh(error)
+    type(error_type), allocatable, intent(out) :: error
+    type(open_hashmap_type) :: open_map
+    call run_hashmap_tests(error, open_map, "open_swh", seeded_water_hasher)
+  end subroutine test_open_swh
 
-            test_8_bits(:,key_type) = transfer( rand_object, 0_int8, test_size )
+
+  ! Common test routine used for all tests.
+  subroutine run_hashmap_tests(error, map, name, hasher)
+    type(error_type), allocatable, intent(out) :: error
+    class(hashmap_type), intent(inout) :: map
+    character(len=*), intent(in) :: name
+    procedure(hasher_fun), optional :: hasher
+    
+    integer :: i
+    logical :: conflict, exists, existed
+    class(*), allocatable :: data
+        
+    integer, parameter :: test_size = 1000  ! Default size is 2^7 = 128 slots.  1000 is big enough to require several map resizes.
+    
+    ! Initialize hashmap with the specified hasher if provided.  Otherwise will be default initialization.
+    if (present(hasher)) call map%init(hasher=hasher, slots_bits=7)
+    
+    !! Key interface test
+    block
+        type(key_type), allocatable :: keys(:)
+        type(key_type) :: key
+        
+        do i = 1, test_size
+            ! Map entry
+            call set(key, [i])
+            call map%map_entry(key, i, conflict)
+            call check(error, .not.conflict, "Failure on key interface map_entry for "//trim(name))
+      
+            ! Verify key exists
+            call map % key_test( key, exists )
+            call check(error, exists, "Key doesn't exist after mapping on key interface for "//trim(name))
+        
+            ! Get data and verify it is correct.
+            call map % get_other_data( key, data, exists )
+            call check(error, exists, "Failure on key interface for get_other_data for"//trim(name))
+            select type(data)
+                type is (integer)
+                    call check(error, data == i, "Failure on key interface data check for"//trim(name))
+                class default
+                    call test_failed(error, "Key interface get_other_data didn't return an integer for "//trim(name))
+            end select
+        
+            ! Set key to a new value    
+            call map % set_other_data( key, (i+test_size), exists )
+            call check(error, exists, "Failure on key interface set_other_data for"//trim(name))
+        
+            ! Get updated value and verify it is correct.
+            call map % get_other_data( key, data, exists )
+            call check(error, exists, "Failure on key interface for get_other_data after set_other_data for"//trim(name))
+            select type(data)
+                type is (integer)
+                    call check(error, data == (i+test_size), "Failure on key interface set_other_data data check for"//trim(name))
+                class default
+                    call test_failed(error, "Key interface set_other_data get_other_data didn't return an integer for "//trim(name))
+                end select
+            
+            ! Check entry count and very it matches expected entry count
+            call check( error, map % entries() == i, "Failure on key interface add entery count for "//trim(name) )
+        end do
+
+        ! Check get all keys routine
+        call map%get_all_keys(keys)
+        call check(error, size(keys) == test_size, "Failure on key interface for get_all_keys for "//trim(name))
+        
+        ! Check remove and get all keys function
+        do i = 1, test_size
+            call set(key, [i])
+        
+            call map % remove(key, existed)
+            call check(error, existed,  "Failure on key interface for remove for "//trim(name))
+        
+            call map % key_test( key, exists )
+            call check(error, .not.exists, "Key exists after removal on key interface for "//trim(name))
+        
+            call check( error, map % entries() == (test_size-i), "Failure on key interface remove entery count for "//trim(name) )
         enddo
+    end block
+    
+    ! If error encoutered exit test, as downstream tests may be unpredictable.
+    if (allocated(error)) return
+    
+    !!! Check int8 interface
+    block
+        type(key_type), allocatable :: keys(:)
+        integer(int8), allocatable :: key_array(:) 
+        
+        do i = 1, test_size
+            key_array = transfer(i,key_array)
+          
+            ! Map entry
+            call map%map_entry(key_array, i, conflict)
+            call check(error, .not.conflict, "Failure on int8 interface map_entry for "//trim(name))
+      
+            ! Verify key exists
+            call map % key_test( key_array, exists )
+            call check(error, exists, "Key doesn't exist after mapping on int8 interface for "//trim(name))
+       
+            ! Get data and verify it is correct.
+            call map % get_other_data( key_array, data, exists )
+            call check(error, exists, "Failure on int8 interface for get_other_data for"//trim(name))
+            select type(data)
+              type is (integer)
+                call check(error, data == i, "Failure on int8 interface data check for"//trim(name))
+              class default
+                call test_failed(error, "Int8 interface get_other_data didn't return an integer for "//trim(name))
+            end select
 
-    end subroutine
-
-    subroutine test_input_random_data(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(open_hashmap_type), intent(inout) :: map
-        integer(int8), intent(in) :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in) :: test_block
-        type(dummy_type) :: dummy_val
-        integer :: index2
-        type(key_type) :: key
-        logical :: conflict
-
-        do index2=1, test_size, test_block
+            ! Set key to a new value                  
+            call map % set_other_data( key_array, (i+test_size), exists )
+            call check(error, exists, "Failure on int8 interface set_other_data for"//trim(name))
+        
+            ! Get updated value and verify it is correct.
+            call map % get_other_data( key_array, data, exists )
+            call check(error, exists, "Failure on int8 interface for get_other_data after set_other_data for"//trim(name))
+            select type(data)
+                type is (integer)
+                    call check(error, data == (i+test_size), &
+                    "Failure on int8 interface set_other_data data check for"//trim(name))
+                class default
+                    call test_failed(error, &
+                    "Int8 interface set_other_data get_other_data didn't return an integer for "//trim(name))
+                end select
+                
+            ! Check entry count and very it matches expected entry count
+            call check( error, map % entries() == i, "Failure on int8 interface add entery count for "//trim(name) )
+        end do
             
-            ! Test base int8 key interface
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % map_entry( key, dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map int8 entry because of a key conflict.")
+        ! Check get all keys routine
+        call map%get_all_keys(keys)
+        call check(error, size(keys) == test_size, "Failure on int8 interface for get_all_keys for "//trim(name))
+        
+        ! Check remove and get all keys function
+        do i = 1, test_size
+            key_array = transfer(i,key_array)
+        
+            call map % remove(key_array, existed)
+            call check(error, existed,  "Failure on int8 interface for remove for "//trim(name))
+      
+            call map % key_test(key_array, exists )
+            call check(error, .not.exists, "Key exists after removal on int8 interface for "//trim(name))
+        
+            call check( error, map % entries() == (test_size-i), &
+            "Failure on int8 interface remove entery count for "//trim(name) )
+        enddo
+    end block
+    
+    ! If error encoutered exit test, as downstream tests may be unpredictable.
+    if (allocated(error)) return
+    
+    !!! Check int32 interface 
+    block
+        type(key_type), allocatable :: keys(:)
+        integer :: key_array(1)
+        
+        do i = 1, test_size
+            key_array = i
             
-            ! Test int32 key interface
-            ! Use transfer to create int32 vector from generated int8 vector.
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % map_entry( key, dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map int32 entry because of a key conflict.")
-
-            ! Test int8 generic key interface
-            call map % map_entry( test_8_bits( index2:index2+test_block-1, 3 ), dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map int8 generic key interface entry because of a key conflict.")
-
-            ! Test int32 key generic interface
-            call map % map_entry( transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map open int32 generic key interface entry because of a key conflict.")
-
-            ! Test character key generic interface
-            call map % map_entry( transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), dummy_val, conflict )
-            call check(error, .not.conflict, "Unable to map open character generic key interface entry because of a key conflict.")
-
-            if (allocated(error)) return
+            ! Map entry
+            call map%map_entry(key_array, i, conflict)
+            call check(error, .not.conflict, "Failure on int32 interface map_entry for "//trim(name))
+      
+            ! Verify key exists
+            call map % key_test( key_array, exists )
+            call check(error, exists, "Key doesn't exist after mapping on int32 interface for "//trim(name))
+       
+            ! Get data and verify it is correct.
+            call map % get_other_data( key_array, data, exists )
+            call check(error, exists, "Failure on int32 interface for get_other_data for"//trim(name))
+            select type(data)
+                type is (integer)
+                    call check(error, data == i, "Failure on int32 interface data check for"//trim(name))
+                class default
+                    call test_failed(error, "Int32 interface get_other_data didn't return an integer for "//trim(name))
+                end select
+                
+            ! Set key to a new value 
+            call map % set_other_data( key_array, (i+test_size), exists )
+            call check(error, exists, "Failure on int32 interface set_other_data for"//trim(name))
+        
+            ! Get updated value and verify it is correct.
+            call map % get_other_data( key_array, data, exists )
+            call check(error, exists, "Failure on int32 interface for get_other_data after set_other_data for"//trim(name))
+            select type(data)
+                type is (integer)
+                    call check(error, data == (i+test_size), &
+                    "Failure on int32 interface set_other_data data check for"//trim(name))
+                class default
+                    call test_failed(error, &
+                    "Int32 interface set_other_data get_other_data didn't return an integer for "//trim(name))
+            end select
+                
+            call check( error, map % entries() == i, "Failure on int32 interface add entery count for "//trim(name) )
         end do
-
-    end subroutine
-
-    subroutine test_inquire_data(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(open_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in)          :: test_block
-        integer :: index2
-        logical :: present
-        type(key_type) :: key
-
-        do index2=1, test_size, test_block
-
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % key_test( key, present )
-            call check(error, present, "Int8 KEY not found in map KEY_TEST.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % key_test( key, present )
-            call check(error, present, "Int32 KEY not found in map KEY_TEST.")
-
-            call map % key_test( test_8_bits( index2:index2+test_block-1, 3 ), present )
-            call check(error, present, "Int8 KEY generic interface not found in map KEY_TEST.")
-
-            call map % key_test( transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), present )
-            call check(error, present, "Int32 KEY generic interface not found in map KEY_TEST.")
-
-            call map % key_test( transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), present )
-            call check(error, present, "Character KEY generic interface not found in map KEY_TEST.")
-
-            if (allocated(error)) return            
+        
+        ! Check get all keys routine
+        call map%get_all_keys(keys)
+        call check(error, size(keys) == test_size, "Failure on int32 interface for get_all_keys for "//trim(name))
+            
+        ! Check remove and get all keys function
+        do i = 1, test_size
+            key_array = i
+              
+            call map % remove(key_array, existed)
+            call check(error, existed,  "Failure on int32 interface for remove for "//trim(name))
+      
+            call map % key_test(key_array, exists )
+            call check(error, .not.exists, "Key exists after removal on int32 interface for "//trim(name))
+        
+            call check( error, map % entries() == (test_size-i), "Failure on int32 interface remove entery count for "//trim(name) )
+        enddo
+    end block
+    
+    ! If error encoutered exit test, as downstream tests may be unpredictable.
+    if (allocated(error)) return
+    
+    !!! Check character interface
+    block
+        type(key_type), allocatable :: keys(:)
+        character(len=16) :: char_key
+      
+        do i = 1, test_size
+            ! Generate a character string for the key
+            write(char_key, '(I0)') i
+        
+            ! Map entry
+            call map%map_entry(char_key, i, conflict)
+            call check(error, .not.conflict, "Failure on char interface map_entry for "//trim(name))
+      
+            ! Verify key exists
+            call map % key_test( char_key, exists )
+            call check(error, exists, "Key doesn't exist after mapping on char interface for "//trim(name))
+       
+            ! Get data and verify it is correct.
+            call map % get_other_data( char_key, data, exists )
+            call check(error, exists, "Failure on char interface for get_other_data for"//trim(name))
+        
+            select type(data)
+                type is (integer)
+                    call check(error, data == i, "Failure on char interface data check for"//trim(name))
+                class default
+                    call test_failed(error, "Char interface get_other_data didn't return an integer for "//trim(name))
+            end select
+        
+            ! Set key to a new value 
+            call map % set_other_data( char_key, (i+test_size), exists )
+            call check(error, exists, "Failure on char interface set_other_data for"//trim(name))
+        
+            ! Get updated value and verify it is correct.
+            call map % get_other_data( char_key, data, exists )
+            call check(error, exists, &
+            "Failure on char interface for get_other_data after set_other_data for"//trim(name))
+            select type(data)
+                type is (integer)
+                    call check(error, data == (i+test_size), &
+                    "Failure on char interface set_other_data data check for"//trim(name))
+                class default
+                    call test_failed(error, &
+                    "Char interface set_other_data get_other_data didn't return an integer for "//trim(name))
+                end select
+                
+            call check( error, map % entries() == i, "Failure on char interface add entery count for "//trim(name) )
         end do
+        
+        ! Check get all keys routine
+        call map%get_all_keys(keys)
+        call check(error, size(keys) == test_size, "Failure on char interface for get_all_keys for "//trim(name))
+      
+        ! Check remove and get all keys function
+        do i = 1, test_size
+            write(char_key, '(I0)') i
+              
+            call map % remove(char_key, existed)
+            call check(error, existed,  "Failure on char interface for remove for "//trim(name))
+      
+            call map % key_test(char_key, exists )
+            call check(error, .not.exists, "Key exists after removal on char interface for "//trim(name))
+        
+            call check( error, map % entries() == (test_size-i), &
+            "Failure on char interface remove entery count for "//trim(name) )
+        enddo
+    end block
+    
+    ! If error encoutered exit test, as downstream tests may be unpredictable.
+    if (allocated(error)) return
+    
+    ! Final loading.  
+    do i = 1, test_size
+        call map%map_entry([i], i)
+    enddo
+    
+    ! Test rehash function.
+    call map%rehash(fnv_1a_hasher)
+    
+    ! Loop back through and verify data is correct.
+    do i = 1, test_size
+        call map % get_other_data( [i], data, exists )
+        call check(error, exists, "Failure on get_other_data after rehash for"//trim(name))
+        
+        select type(data)
+            type is (integer)
+                call check(error, data == i, "Failure on data check after rehash for"//trim(name))
+            class default
+                call test_failed(error, "After rehash didn't return an integer for "//trim(name))
+            end select
+    enddo
+    
+    ! Check miscellaneous functions calls
+    block
+        real :: ratio
+        integer :: num_slots, nprobes, depth, bits
+ 
+        bits = 0
+        bits = map%slots_bits()
+        call check(error, bits > 0, "Slots_bits function failure for "//trim(name))
+        
+        ratio = -1
+        ratio = map%loading()
+        call check(error, ratio > 0, "Loading function failure for"//trim(name))
+    
+        num_slots = -1
+        num_slots = map%num_slots()
+        call check(error, num_slots > 0, "Num_slots function failure for"//trim(name))
+        
+        nprobes = -1
+        nprobes = map%map_probes()
+        call check(error, nprobes > 0, "Map_probes failure for"//trim(name))
+        
+        depth = -1
+        depth = map%total_depth()
+        call check(error, depth > 0, "Total_depth failure for"//trim(name))
+    end block
+    
+    ! Leaving map with entries to test finalization routine on subroutine exit.
+  end subroutine run_hashmap_tests
 
-    end subroutine
+end module test_hashmaps
 
-    subroutine test_get_data(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(open_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in)          :: test_block
-        integer :: index2
-        type(key_type) :: key
-        class(*), allocatable :: data
-        logical :: exists
-
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % get_other_data( key, data, exists )
-            call check(error, exists, "Unable to get data because int8 key not found in map.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % get_other_data( key, data, exists )
-            call check(error, exists, "Unable to get data because int32 key not found in map.")
-
-            call map % get_other_data( test_8_bits( index2:index2+test_block-1, 3 ), data, exists )
-            call check(error, exists, "Unable to get data because int8 generic interface key not found in map.")
-
-            call map % get_other_data( transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), data, exists )
-            call check(error, exists, "Unable to get data because int32 generic interface key not found in map.")
-
-            call map % get_other_data( transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), data, exists )
-            call check(error, exists, "Unable to get data because character generic interface key not found in map.")
-        end do
-
-    end subroutine
-
-    subroutine test_removal(error, map, test_8_bits, test_block)
-        type(error_type), allocatable, intent(out) :: error
-        type(open_hashmap_type), intent(inout)  :: map
-        integer(int8), intent(in)               :: test_8_bits(test_size, key_types)
-        integer(int_index), intent(in)          :: test_block
-        type(key_type) :: key
-        integer(int_index) :: index2
-        logical :: existed
-
-        do index2=1, test_size, test_block
-            call set( key, test_8_bits( index2:index2+test_block-1, 1 ) )
-            call map % remove(key, existed)
-            call check(error, existed,  "Int8 Key not found in entry removal.")
-
-            call set( key, transfer( test_8_bits( index2:index2+test_block-1, 2 ), [0_int32] ) )
-            call map % remove(key, existed)
-            call check(error, existed,  "Int32 Key not found in entry removal.")
-
-            call map % remove( test_8_bits( index2:index2+test_block-1, 3 ), existed)
-            call check(error, existed,  "Int8 Key generic interface not found in entry removal.")
-
-            call map % remove(transfer( test_8_bits( index2:index2+test_block-1, 4 ), [0_int32] ), existed)
-            call check(error, existed,  "Int32 Key generic interface not found in entry removal.")
-
-            call map % remove(transfer( test_8_bits( index2:index2+test_block-1, 5 ), char_size ), existed)
-            call check(error, existed,  "Character Key generic interface not found in entry removal.")
-        end do
-
-    end subroutine
-
-    subroutine test_removal_spec(error)
-        !! Test following code provided by @jannisteunissen
-        !! https://github.com/fortran-lang/stdlib/issues/785
-        type(error_type), allocatable, intent(out) :: error
-
-        type(open_hashmap_type) :: map
-        type(key_type) :: key
-        integer, parameter :: n_max = 500
-        integer :: n
-        integer, allocatable :: key_counts(:)
-        integer, allocatable :: seed(:)
-        integer(int8) :: int32_int8(4)
-        integer(int32) :: keys(n_max)
-        real(dp) :: r_uniform(n_max)
-        logical :: existed, present
-
-        call random_seed(size = n)
-        allocate(seed(n), source = 123456)
-        call random_seed(put = seed)
-
-        call random_number(r_uniform)
-        keys = nint(r_uniform * n_max * 0.25_dp)
-
-        call map%init(fnv_1_hasher, slots_bits=10)
-
-        do n = 1, n_max
-            call set(key, transfer(keys(n), int32_int8))
-            call map%key_test(key, present)
-            if (present) then
-                call map%remove(key, existed)
-                call check(error, existed, "open-removal-spec: Key not found in entry removal.")
-                return
-            else
-                call map%map_entry(key)
-            end if
-        end do
-
-        ! Count number of keys that occur an odd number of times
-        allocate(key_counts(minval(keys):maxval(keys)), source = 0)
-        do n = 1, n_max
-            key_counts(keys(n)) = key_counts(keys(n)) + 1
-        end do
-        n = sum(iand(key_counts, 1))
-
-        call check(error, map%entries(), n, & 
-                   "open-removal-spec: Number of expected keys and entries are different.")
-        return
-
-    end subroutine
-
-end module
-
-
-program tester
-    use, intrinsic :: iso_fortran_env, only : error_unit
-    use testdrive, only : run_testsuite, new_testsuite, testsuite_type
-    use test_stdlib_open_maps, only : collect_stdlib_open_maps
-    use test_stdlib_chaining_maps, only : collect_stdlib_chaining_maps
-    implicit none
-    integer :: stat, is
-    type(testsuite_type), allocatable :: testsuites(:)
-    character(len=*), parameter :: fmt = '("#", *(1x, a))'
-
-    stat = 0
-
-    testsuites = [ &
-        new_testsuite("stdlib-open-maps", collect_stdlib_open_maps) &
-        , new_testsuite("stdlib-chaining-maps", collect_stdlib_chaining_maps) &
-        ]
-
-    do is = 1, size(testsuites)
-        write(error_unit, fmt) "Testing:", testsuites(is)%name
-        call run_testsuite(testsuites(is)%collect, error_unit, stat)
-    end do
-
-    if (stat > 0) then
-        write(error_unit, '(i0, 1x, a)') stat, "test(s) failed!"
-        error stop
-    end if
-end program
+    
+program main
+  use, intrinsic :: iso_fortran_env, only : error_unit
+  use testdrive, only: run_testsuite, new_testsuite, testsuite_type
+  use test_hashmaps, only: collect_hashmap_tests
+  
+  implicit none
+  
+  integer :: stat
+  type(testsuite_type), allocatable :: testsuites(:)
+  
+  testsuites = [ new_testsuite("hashmap_tests", collect_hashmap_tests) ]
+  
+  stat = 0
+  call run_testsuite(testsuites(1)%collect, error_unit, stat)
+  
+  if (stat > 0) then
+    write(error_unit, '(i0, 1x, a)') stat, "Hashmap tests failed!"
+    error stop
+  end if
+  
+end program main
