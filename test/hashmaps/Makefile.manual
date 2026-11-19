@@ -1,5 +1,6 @@
 PROGS_SRC = test_chaining_maps.f90 \
-            test_open_maps.f90
+            test_open_maps.f90 \
+            test_maps_free_stack.f90
 
 
 include ../Makefile.manual.test.mk
