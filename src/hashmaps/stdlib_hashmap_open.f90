@@ -192,11 +192,12 @@ contains
     end subroutine extend_open_map_entry_pool
 
 
-    recursive subroutine free_map_entry_pool(pool) ! gent_pool_free
+    subroutine free_map_entry_pool(pool) ! gent_pool_free
 !! Version: Experimental
-!! Note the freeing of allocated memory may be unnecessary
 !!
-!! Recursively descends map entry pool list freeing each element
+!! Iteratively walks the map entry pool list freeing each element.
+!! Iterative rather than recursive so that freeing very large maps
+!! cannot overflow the stack.
 !! Arguments:
 !!     pool  The map entry pool whose elements are to be freed
 !
@@ -204,13 +205,12 @@ contains
 
         type(open_map_entry_pool), pointer :: lastpool
 
-        if ( associated(pool) ) then
+        do while ( associated(pool) )
             lastpool => pool % lastpool
             pool % lastpool => null()
             deallocate( pool )
-!         Trace component pointers/lists
-            call free_map_entry_pool( lastpool )
-        end if
+            pool => lastpool
+        end do
 
     end subroutine free_map_entry_pool
 

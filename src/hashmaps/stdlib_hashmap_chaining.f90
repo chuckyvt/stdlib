@@ -268,18 +268,24 @@ contains
     end subroutine free_chaining_map
 
 
-    recursive subroutine free_map_entry_pool(pool) ! gent_pool_free
+    subroutine free_map_entry_pool(pool) ! gent_pool_free
 !! Version: Experimental
 !!
-!! Recursively descends map entry pool list freeing each element
+!! Iteratively walks the map entry pool list freeing each element.
+!! Iterative rather than recursive so that freeing very large maps
+!! cannot overflow the stack.
 !! Arguments:
 !!     pool  The map entry pool whose elements are to be freed
 !
         type(chaining_map_entry_pool), intent(inout), pointer :: pool
 
-        if ( .not.  associated(pool) ) return
-        call free_map_entry_pool(pool % lastpool)
-        deallocate( pool )
+        type(chaining_map_entry_pool), pointer :: lastpool
+
+        do while ( associated(pool) )
+            lastpool => pool % lastpool
+            deallocate( pool )
+            pool => lastpool
+        end do
 
     end subroutine free_map_entry_pool
 
